@@ -32,7 +32,7 @@ export default function ImageCarousel({ images }: CarouselProps) {
 
   if (validImages.length === 0) {
     return (
-      <div className="w-full h-64 sm:h-120 bg-linear-to-r from-primary/20 to-accent/20 rounded-xl flex items-center justify-center">
+      <div className="w-full h-64 sm:h-140 bg-linear-to-r from-primary/20 to-accent/20 rounded-xl flex items-center justify-center">
         <p className="text-muted-foreground">No images available</p>
       </div>
     )
@@ -40,7 +40,7 @@ export default function ImageCarousel({ images }: CarouselProps) {
 
   return (
     <div
-      className="relative w-full h-64 sm:h-120 rounded-xl overflow-hidden group"
+      className="relative w-full h-64 sm:h-140 rounded-xl overflow-hidden group"
       onMouseEnter={() => setIsAutoPlay(false)}
       onMouseLeave={() => setIsAutoPlay(true)}
     >

@@ -22,6 +22,13 @@ export default function Navbar() {
     <nav className="sticky top-0 z-50 animate-slide-down">
       {/* Glassmorphism background with blur effect */}
       <div className="absolute inset-0 bg-linear-to-b from-card/80 to-card/40 backdrop-blur-md border-b border-border/30" />
+      <div className="absolute inset-0 bg-linear-to-r from-primary to-secondary opacity-0 group-hover:opacity-5 transition-opacity duration-500" />
+
+      <div className="absolute top-0 left-1/4 w-96 h-10 bg-primary/20 rounded-full blur-3xl animate-pulse" />
+      <div
+        className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-pulse"
+        style={{ animationDelay: "1s" }}
+      />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
@@ -64,9 +71,8 @@ export default function Navbar() {
 
                   {/* Animated underline */}
                   <div
-                    className={`absolute bottom-0 left-0 h-0.5 bg-linear-to-r from-accent to-primary transition-all duration-300 ${
-                      isHovered ? "w-full" : "w-0"
-                    }`}
+                    className={`absolute bottom-0 left-0 h-0.5 bg-linear-to-r from-accent to-primary transition-all duration-300 ${isHovered ? "w-full" : "w-0"
+                      }`}
                   />
 
                   {/* Glow effect on hover */}
