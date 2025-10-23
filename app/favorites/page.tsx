@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import GiveawayCard from "@/components/giveaway-card"
-import GiveawaySkeleton from "@/components/giveaway-skeleton"
+import GiveawaySkeleton from "@/components/skeletons/giveaway-skeleton"
 import { Heart } from "lucide-react"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"

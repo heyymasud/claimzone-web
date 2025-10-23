@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react"
 import GiveawayCard from "@/components/giveaway-card"
 import WorthBanner from "@/components/worth-banner"
-import GiveawaySkeleton from "@/components/giveaway-skeleton"
+import GiveawaySkeleton from "@/components/skeletons/giveaway-skeleton"
 import FilterBar from "@/components/filter-bar"
 import ImageCarousel from "@/components/image-carousel"
 import { Giveaway } from "@/types/giveaway"
+import CarouselSkeleton from "@/components/skeletons/carousel-skeleton"
+import WorthBannerSkeleton from "@/components/skeletons/worth-banner-skeleton"
 
 export default function Home() {
   const [giveaways, setGiveaways] = useState<Giveaway[]>([])
@@ -77,13 +79,24 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
 
-      {!loading && carouselImages.length > 0 && (
-        <div className="mb-8 pt-8 animate-slide-in-right px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl">
-          <ImageCarousel images={carouselImages} />
-        </div>
+      {loading ? (
+        <>
+          <div className="mb-8 pt-8 px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl">
+            <CarouselSkeleton />
+          </div>
+          <WorthBannerSkeleton />
+        </>
+      ) : (
+        <>
+          {carouselImages.length > 0 && (
+            <div className="mb-8 pt-8 animate-slide-in-right px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl">
+              <ImageCarousel images={carouselImages} />
+            </div>
+          )}
+          {totalWorth && <WorthBanner count={totalWorth.active_giveaways_number} worth={totalWorth.worth_estimation_usd} />}
+        </>
       )}
 
-      {totalWorth && <WorthBanner count={totalWorth.active_giveaways_number} worth={totalWorth.worth_estimation_usd} />}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-2">Active Giveaways</h1>

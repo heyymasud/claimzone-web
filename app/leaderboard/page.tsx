@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Trophy, Medal, Flame } from "lucide-react"
 import { UserStats } from "@/types/users"
+import LeaderboardRowSkeleton from "@/components/skeletons/leaderboard-row-skeleton"
 
 export default function LeaderboardPage() {
   const [topByWorth, setTopByWorth] = useState<UserStats[]>([])
@@ -99,7 +100,7 @@ export default function LeaderboardPage() {
         {loading ? (
           <div className="space-y-4">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-20 bg-muted rounded-lg animate-pulse" />
+              <LeaderboardRowSkeleton key={i} />
             ))}
           </div>
         ) : leaderboard.length === 0 ? (
