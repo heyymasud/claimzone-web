@@ -71,10 +71,7 @@ export default function Home() {
     setFilteredGiveaways(filtered)
   }, [giveaways, selectedPlatform, selectedType, sortBy])
 
-  const carouselImages = giveaways
-    .slice(0, 8)
-    .map((g) => g.image || g.thumbnail)
-    .filter((img) => img)
+  const carouselGiveaways = giveaways.slice(0, 8)
 
   return (
     <div className="min-h-screen bg-background">
@@ -88,9 +85,9 @@ export default function Home() {
         </>
       ) : (
         <>
-          {carouselImages.length > 0 && (
+          {carouselGiveaways.length > 0 && (
             <div className="mb-8 pt-8 animate-slide-in-right px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl">
-              <ImageCarousel images={carouselImages} />
+              <ImageCarousel giveaways={carouselGiveaways} />
             </div>
           )}
           {totalWorth && <WorthBanner count={totalWorth.active_giveaways_number} worth={totalWorth.worth_estimation_usd} />}
