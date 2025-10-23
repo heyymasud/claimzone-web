@@ -66,7 +66,7 @@ export default function WorthBanner({ count, worth }: { count: number; worth: st
                     Total Worth
                   </p>
                   <p className="text-4xl sm:text-5xl font-black bg-linear-to-r from-accent to-primary bg-clip-text text-transparent mt-2">
-                    {worth}
+                    $ {worth}
                   </p>
                   <p className="text-xs sm:text-sm text-muted-foreground mt-1">USD Value</p>
                 </div>

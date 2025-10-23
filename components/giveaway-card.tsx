@@ -8,10 +8,12 @@ import { Heart } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/auth-context"
 import { Giveaway } from "@/types/giveaway"
+import { useRouter } from "next/navigation"
 
 export default function GiveawayCard({ giveaway }: { giveaway: Giveaway }) {
   const [isFavorited, setIsFavorited] = useState(false)
   const { user, isFavorite, addFavorite, removeFavorite } = useAuth()
+  const router = useRouter()
 
   useEffect(() => {
     if (user) {
@@ -22,8 +24,7 @@ export default function GiveawayCard({ giveaway }: { giveaway: Giveaway }) {
   const toggleFavorite = (e: React.MouseEvent) => {
     e.preventDefault()
     if (!user) {
-      // Redirect to login if not authenticated
-      window.location.href = "/login"
+      router.push("/login")
       return
     }
 
@@ -95,11 +96,11 @@ export default function GiveawayCard({ giveaway }: { giveaway: Giveaway }) {
 
             {/* Worth and Date */}
             <div className="flex justify-between items-end mt-auto">
-              <div>
+              <div className={`${giveaway.worth != "N/A" ? "" : "invisible"}`}>
                 <p className="text-xs text-muted-foreground">Worth</p>
                 <p className="font-bold text-accent">{giveaway.worth || "Free"}</p>
               </div>
-              <div className="text-right">
+              <div className={`text-right ${giveaway.end_date != "N/A"  ? "" : "invisible"}`}>
                 <p className="text-xs text-muted-foreground">Ends</p>
                 <p className="text-xs font-semibold text-foreground">
                   {new Date(giveaway.end_date).toLocaleDateString()}

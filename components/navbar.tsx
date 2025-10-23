@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Heart, LogOut, User, Menu, X } from "lucide-react"
+import { Heart, LogOut, User, Menu, X, Gamepad } from "lucide-react"
 import { useState } from "react"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
@@ -19,14 +19,14 @@ export default function Navbar() {
   ]
 
   return (
-    <nav className="sticky top-0 z-50 animate-slide-down">
+    <nav className="sticky top-0 z-50 animate-slide-down overflow-hidden">
       {/* Glassmorphism background with blur effect */}
       <div className="absolute inset-0 bg-linear-to-b from-card/80 to-card/40 backdrop-blur-md border-b border-border/30" />
       <div className="absolute inset-0 bg-linear-to-r from-primary to-secondary opacity-0 group-hover:opacity-5 transition-opacity duration-500" />
 
       <div className="absolute top-0 left-1/4 w-96 h-10 bg-primary/20 rounded-full blur-3xl animate-pulse" />
       <div
-        className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-pulse"
+        className={`absolute bottom-0 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse ${mobileMenuOpen ? "hidden" : ""}`}
         style={{ animationDelay: "1s" }}
       />
 
@@ -40,7 +40,7 @@ export default function Navbar() {
             onMouseLeave={() => setHoveredLink(null)}
           >
             <div className="relative w-10 h-10 rounded-xl bg-linear-to-br from-accent via-primary to-secondary flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-accent/50">
-              <span className="text-accent-foreground font-bold text-sm">CZ</span>
+              <span className="text-accent-foreground font-bold text-sm"><Gamepad /></span>
               {hoveredLink === "logo" && (
                 <div className="absolute inset-0 rounded-xl bg-linear-to-br from-accent via-primary to-secondary opacity-50 blur-md -z-10 animate-pulse" />
               )}
@@ -82,7 +82,8 @@ export default function Navbar() {
                 </Link>
               )
             })}
-
+          </div>
+          <div className="hidden md:flex items-center gap-8">
             {/* Desktop Auth Section */}
             <div className="flex items-center gap-4 pl-4 border-l border-border/30">
               {user ? (
@@ -103,14 +104,14 @@ export default function Navbar() {
               ) : (
                 <div className="flex items-center gap-2">
                   <Link href="/login">
-                    <Button variant="ghost" size="sm" className="text-foreground/80 hover:text-accent">
+                    <Button variant="ghost" size="sm" className="text-foreground/80 hover:text-accent transition-all duration-300">
                       Sign In
                     </Button>
                   </Link>
                   <Link href="/register">
                     <Button
                       size="sm"
-                      className="bg-linear-to-r from-accent to-primary hover:from-accent/90 hover:to-primary/90 text-accent-foreground"
+                      className="bg-linear-to-r from-accent to-primary hover:from-accent/90 hover:to-primary/90 text-accent-foreground hover:shadow-accent/50 transition-all duration-300  hover:shadow-md"
                     >
                       Register
                     </Button>
