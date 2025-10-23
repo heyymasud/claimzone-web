@@ -216,4 +216,27 @@
   .animate-slide-in-right {
     animation: slideInRight 0.5s ease-out;
   }
+
+  /* Add shimmer gradient animation for skeleton loaders */
+  @keyframes shimmerGradient {
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+
+  .animate-shimmer-gradient {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.1) 20%,
+      rgba(255, 255, 255, 0.3) 50%,
+      rgba(255, 255, 255, 0.1) 80%,
+      transparent 100%
+    );
+    background-size: 1000px 100%;
+    animation: shimmerGradient 2s infinite;
+  }
 }

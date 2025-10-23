@@ -11,14 +11,15 @@ import GiveawayCard from "@/components/giveaway-card"
 import { Giveaway } from "@/types/giveaway"
 
 export default function DashboardPage() {
-  const { user, userStats, logout, getFavorites } = useAuth()
+  const { user, userStats, logout, getFavorites, isLoading } = useAuth()
   const router = useRouter()
   const [claimedGiveaways, setClaimedGiveaways] = useState<Giveaway[]>([])
   const [favoriteGiveaways, setFavoriteGiveaways] = useState<Giveaway[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!user) {
+    console.log("user", user)
+    if (!user && !isLoading) {
       router.push("/login")
       return
     }

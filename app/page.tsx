@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react"
 import GiveawayCard from "@/components/giveaway-card"
 import WorthBanner from "@/components/worth-banner"
-import GiveawaySkeleton from "@/components/giveaway-skeleton"
+import GiveawaySkeleton from "@/components/skeletons/giveaway-skeleton"
 import FilterBar from "@/components/filter-bar"
 import ImageCarousel from "@/components/image-carousel"
 import { Giveaway } from "@/types/giveaway"
+import CarouselSkeleton from "@/components/skeletons/carousel-skeleton"
+import WorthBannerSkeleton from "@/components/skeletons/worth-banner-skeleton"
 
 export default function Home() {
   const [giveaways, setGiveaways] = useState<Giveaway[]>([])
@@ -69,22 +71,30 @@ export default function Home() {
     setFilteredGiveaways(filtered)
   }, [giveaways, selectedPlatform, selectedType, sortBy])
 
-  const carouselImages = giveaways
-    .slice(0, 8)
-    .map((g) => g.image || g.thumbnail)
-    .filter((img) => img)
+  const carouselGiveaways = giveaways.slice(0, 8)
 
   return (
     <div className="min-h-screen bg-background">
-      {totalWorth && <WorthBanner count={totalWorth.active_giveaways_number} worth={totalWorth.worth_estimation_usd} />}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {!loading && carouselImages.length > 0 && (
-          <div className="mb-12 animate-slide-in-right">
-            <ImageCarousel images={carouselImages} />
+      {loading ? (
+        <>
+          <div className="mb-8 pt-8 px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl">
+            <CarouselSkeleton />
           </div>
-        )}
+          <WorthBannerSkeleton />
+        </>
+      ) : (
+        <>
+          {carouselGiveaways.length > 0 && (
+            <div className="mb-8 pt-8 animate-slide-in-right px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl">
+              <ImageCarousel giveaways={carouselGiveaways} />
+            </div>
+          )}
+          {totalWorth && <WorthBanner count={totalWorth.active_giveaways_number} worth={totalWorth.worth_estimation_usd} />}
+        </>
+      )}
 
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-2">Active Giveaways</h1>
           <p className="text-muted-foreground">Discover free games, loot, and beta access</p>
