@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Image from "next/image"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
 interface CarouselProps {
   images: string[]
@@ -31,7 +32,7 @@ export default function ImageCarousel({ images }: CarouselProps) {
 
   if (validImages.length === 0) {
     return (
-      <div className="w-full h-96 bg-linear-to-r from-primary/20 to-accent/20 rounded-xl flex items-center justify-center">
+      <div className="w-full h-64 sm:h-120 bg-linear-to-r from-primary/20 to-accent/20 rounded-xl flex items-center justify-center">
         <p className="text-muted-foreground">No images available</p>
       </div>
     )
@@ -39,7 +40,7 @@ export default function ImageCarousel({ images }: CarouselProps) {
 
   return (
     <div
-      className="relative w-full h-120 rounded-xl overflow-hidden group"
+      className="relative w-full h-64 sm:h-120 rounded-xl overflow-hidden group"
       onMouseEnter={() => setIsAutoPlay(false)}
       onMouseLeave={() => setIsAutoPlay(true)}
     >
@@ -61,48 +62,44 @@ export default function ImageCarousel({ images }: CarouselProps) {
               img.src = "/gaming-giveaway.jpg"
             }}
           />
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/20 to-transparent" />
+
+          <div className="absolute inset-0 bg-linear-to-r from-accent/0 via-accent/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
       ))}
 
-      {/* Navigation buttons */}
       <button
         onClick={() => setCurrentIndex((prev) => (prev - 1 + validImages.length) % validImages.length)}
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-10 bg-black/60 hover:bg-accent/80 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
         aria-label="Previous slide"
       >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
+        <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
       </button>
 
       <button
         onClick={() => setCurrentIndex((prev) => (prev + 1) % validImages.length)}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-10 bg-black/60 hover:bg-accent/80 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110"
         aria-label="Next slide"
       >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
+        <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
       </button>
 
-      {/* Dot indicators */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex gap-2">
+      <div className="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-10 flex gap-2 bg-black/40 px-3 py-2 rounded-full backdrop-blur-sm">
         {validImages.map((_, index) => (
           <button
             key={index}
             onClick={() => goToSlide(index)}
-            className={`w-2 h-2 rounded-full transition-all ${
-              index === currentIndex ? "bg-accent w-8" : "bg-white/50 hover:bg-white/70"
+            className={`transition-all duration-300 rounded-full ${
+              index === currentIndex
+                ? "bg-accent w-8 h-2 shadow-lg shadow-accent/50"
+                : "bg-white/40 hover:bg-white/70 w-2 h-2"
             }`}
             aria-label={`Go to slide ${index + 1}`}
           />
         ))}
       </div>
 
-      {/* Slide counter */}
-      <div className="absolute top-4 right-4 z-10 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+      <div className="absolute top-3 sm:top-4 right-3 sm:right-4 z-10 bg-linear-to-r from-accent/80 to-primary/80 text-accent-foreground px-3 py-1 rounded-full text-xs sm:text-sm font-semibold backdrop-blur-sm">
         {currentIndex + 1} / {validImages.length}
       </div>
     </div>
