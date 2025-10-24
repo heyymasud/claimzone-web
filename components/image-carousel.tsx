@@ -128,7 +128,7 @@ export default function ImageCarousel({ giveaways }: CarouselProps) {
         ))}
       </div>
 
-      <div className="absolute top-3 sm:top-4 right-3 sm:right-4 z-10 bg-linear-to-r from-accent/80 to-primary/80 text-accent-foreground px-3 py-1 rounded-full text-xs sm:text-sm font-semibold backdrop-blur-sm">
+      <div className="absolute top-3 sm:top-4 right-3 sm:right-4 z-10 text-slate-200 px-3 py-1 rounded-full text-xs sm:text-sm font-semibold bg-linear-to-b from-card/80 to-card/40 backdrop-blur-md">
         {currentIndex + 1} / {validGiveaways.length}
       </div>
     </div>

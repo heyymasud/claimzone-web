@@ -13,7 +13,7 @@ export default function Navbar() {
 
   const navLinks = [
     { href: "/", label: "Home", icon: null },
-    { href: "/favorites", label: "Favorites", icon: Heart },
+    { href: "/favorites", label: "Favorites", icon: null },
     { href: "/leaderboard", label: "Leaderboard", icon: null },
     { href: "/about", label: "About", icon: null },
   ]
@@ -65,7 +65,7 @@ export default function Navbar() {
                   onMouseLeave={() => setHoveredLink(null)}
                 >
                   <div className="flex items-center gap-2 text-foreground/80 transition-all duration-300 group-hover:text-accent">
-                    {Icon && <Icon className="w-4 h-4" />}
+                    {/* {Icon && <Icon className="w-4 h-4" />} */}
                     <span className="text-sm font-medium">{link.label}</span>
                   </div>
 
@@ -142,7 +142,7 @@ export default function Navbar() {
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center gap-2 px-4 py-2 rounded-lg text-foreground/80 hover:bg-primary/10 hover:text-accent transition-all"
                   >
-                    {Icon && <Icon className="w-4 h-4" />}
+                    {/* {Icon && <Icon className="w-4 h-4" />} */}
                     <span className="text-sm font-medium">{link.label}</span>
                   </Link>
                 )
