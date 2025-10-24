@@ -9,6 +9,7 @@ import ImageCarousel from "@/components/image-carousel"
 import { Giveaway } from "@/types/giveaway"
 import CarouselSkeleton from "@/components/skeletons/carousel-skeleton"
 import WorthBannerSkeleton from "@/components/skeletons/worth-banner-skeleton"
+import Pagination from "@/components/pagination"
 
 export default function Home() {
   const [giveaways, setGiveaways] = useState<Giveaway[]>([])
@@ -18,6 +19,8 @@ export default function Home() {
   const [selectedPlatform, setSelectedPlatform] = useState<string>("")
   const [selectedType, setSelectedType] = useState<string>("")
   const [sortBy, setSortBy] = useState<string>("newest")
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 9
 
   useEffect(() => {
     const fetchData = async () => {
@@ -71,6 +74,11 @@ export default function Home() {
     setFilteredGiveaways(filtered)
   }, [giveaways, selectedPlatform, selectedType, sortBy])
 
+  const totalPages = Math.ceil(filteredGiveaways.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedGiveaways = filteredGiveaways.slice(startIndex, endIndex)
+
   const carouselGiveaways = giveaways.slice(0, 8)
 
   return (
@@ -118,7 +126,8 @@ export default function Home() {
         ) : (
           <>
             <p className="text-muted-foreground mb-6">
-              Showing {filteredGiveaways.length} of {giveaways.length} giveaways
+              Showing {startIndex + 1}-{Math.min(endIndex, filteredGiveaways.length)} of {filteredGiveaways.length}{" "}
+              giveaways
             </p>
             {filteredGiveaways.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20">
@@ -135,11 +144,14 @@ export default function Home() {
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredGiveaways.map((giveaway) => (
-                  <GiveawayCard key={giveaway.id} giveaway={giveaway} />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {paginatedGiveaways.map((giveaway) => (
+                    <GiveawayCard key={giveaway.id} giveaway={giveaway} />
+                  ))}
+                </div>
+                <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+              </>
             )}
           </>
         )}
