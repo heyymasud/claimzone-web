@@ -37,20 +37,33 @@ export default function GiveawayCard({ giveaway }: { giveaway: Giveaway }) {
   }
 
   const platformColors: Record<string, string> = {
-    steam: "bg-blue-600",
-    epic: "bg-purple-600",
+    pc: "bg-blue-500",
+    steam: "bg-[#2F4F4F]",
+    "epic games store": "bg-purple-600",
     gog: "bg-red-600",
     ubisoft: "bg-blue-500",
     origin: "bg-orange-600",
     twitch: "bg-purple-500",
-    playstation: "bg-blue-700",
+    "playstation 5": "bg-blue-700",
+    "playstation 4": "bg-blue-700",
     xbox: "bg-green-600",
+    "xbox one": "bg-green-600",
+    "xbox series x|s": "bg-green-600",
+    "nintendo switch": "bg-red-600",
+    android: "bg-green-600",
+    ios: "bg-blue-600",
+    "drm-free": "bg-green-600",
   }
 
   const typeColors: Record<string, string> = {
     game: "bg-accent",
-    loot: "bg-secondary",
-    beta: "bg-primary",
+    dlc: "bg-secondary",
+    "early access": "bg-primary",
+    other: "bg-muted",
+  }
+
+  const handlePlatformColor = (platform: string) => {
+    return platformColors[platform.toLowerCase()] || "bg-muted"
   }
 
   const platformKey = giveaway.platforms?.toLowerCase().split(",")[0].trim() || "steam"
@@ -86,9 +99,11 @@ export default function GiveawayCard({ giveaway }: { giveaway: Giveaway }) {
 
             {/* Tags */}
             <div className="flex gap-2 mb-3 flex-wrap">
-              <span className={`text-xs font-semibold text-white px-2 py-1 rounded ${platformColor}`}>
-                {giveaway.platforms?.split(",")[0].trim() || "Steam"}
-              </span>
+              {giveaway.platforms?.split(",")?.map((platform, i) => (
+                <span key={i} className={`text-xs font-semibold text-white px-2 py-1 rounded ${handlePlatformColor(platform.trim())}`}>
+                  {platform.trim()}
+                </span>
+              ))}
               <span className={`text-xs font-semibold text-white px-2 py-1 rounded ${typeColor}`}>
                 {giveaway.type || "Game"}
               </span>

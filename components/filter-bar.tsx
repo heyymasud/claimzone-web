@@ -11,8 +11,8 @@ interface FilterBarProps {
   setSortBy: (sort: string) => void
 }
 
-const PLATFORMS = ["PC", "Android", "iOS", "Steam", "Epic Games", "GOG", "Ubisoft", "Origin", "Twitch", "PlayStation", "Xbox"]
-const TYPES = ["Game", "Loot", "Beta"]
+const PLATFORMS = ["PC", "PlayStation", "Xbox", "Android", "iOS", "Steam", "Epic Games", "GOG", "Ubisoft", "Origin", "Twitch"]
+const TYPES = ["Game", "DLC", "Early Access", "Other"]
 const SORT_OPTIONS = [
   { value: "newest", label: "Newest First" },
   { value: "ending", label: "Ending Soon" },
