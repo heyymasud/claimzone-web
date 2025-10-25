@@ -5,6 +5,7 @@ export default function Footer() {
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <div className="text-sm text-muted-foreground">
             <p>© 2025 ClaimZone - All rights reserved</p>
+            <p>@masudyns</p>
           </div>
           <div className="text-sm text-muted-foreground">
             <p>
