@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft, Heart, Share2, Copy, ExternalLink, Check } from "lucide-react"
@@ -17,6 +17,7 @@ export default function GiveawayDetail() {
   const [copied, setCopied] = useState(false)
   const [isClaimed, setIsClaimed] = useState(false)
   const { user, isFavorite, addFavorite, removeFavorite, addClaim } = useAuth()
+  const router = useRouter()
 
   useEffect(() => {
     const fetchGiveaway = async () => {
@@ -43,7 +44,7 @@ export default function GiveawayDetail() {
 
   const toggleFavorite = () => {
     if (!user) {
-      window.location.href = "/login"
+      router.push("/login")
       return
     }
 
@@ -57,7 +58,7 @@ export default function GiveawayDetail() {
 
   const handleClaim = () => {
     if (!user) {
-      window.location.href = "/login"
+      router.push("/login")
       return
     }
 

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 
 export default function WorthBanner({ count, worth }: { count: number; worth: string }) {
   const [displayCount, setDisplayCount] = useState(0)
+  const [displayWorth, setDisplayWorth] = useState(0)
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
@@ -12,15 +13,21 @@ export default function WorthBanner({ count, worth }: { count: number; worth: st
     if (!isVisible) return
 
     let current = 0
+    let currentWorth = 0
     const target = count
+    const targetWorth = Number(worth)
     const increment = Math.ceil(target / 30)
+    const incrementWorth = Math.ceil(targetWorth / 30)
     const timer = setInterval(() => {
       current += increment
-      if (current >= target) {
+      currentWorth += incrementWorth
+      if (current >= target && currentWorth >= targetWorth) {
         setDisplayCount(target)
+        setDisplayWorth(targetWorth)
         clearInterval(timer)
       } else {
         setDisplayCount(current)
+        setDisplayWorth(currentWorth)
       }
     }, 30)
 
@@ -66,7 +73,7 @@ export default function WorthBanner({ count, worth }: { count: number; worth: st
                     Total Worth
                   </p>
                   <p className="text-4xl sm:text-5xl font-black bg-linear-to-r from-accent to-primary bg-clip-text text-transparent mt-2">
-                    $ {worth}
+                    $ {displayWorth}
                   </p>
                   <p className="text-xs sm:text-sm text-muted-foreground mt-1">USD Value</p>
                 </div>
