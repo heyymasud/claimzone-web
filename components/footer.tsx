@@ -18,10 +18,10 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
           <div className="flex flex-col gap-4">
             <div>
-              <h3 className="text-lg font-bold bg-linear-to-r from-primary to-accent bg-clip-text text-transparent mb-1">
+              <h3 className="text-lg font-bold text-foreground mb-1">
                 Built by
               </h3>
-              <p className="text-2xl font-bold text-foreground">M Mas'ud Yunus</p>
+              <p className="text-2xl font-bold bg-linear-to-r from-primary to-accent bg-clip-text text-transparent">M Mas'ud Yunus</p>
               <p className="text-sm text-muted-foreground mt-1">Full Stack Developer</p>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -29,10 +29,11 @@ export default function Footer() {
             </p>
           </div>
 
-          <div className="flex flex-col gap-4">
-            <h4 className="text-sm font-semibold text-foreground uppercase tracking-wider">Connect</h4>
-            <div className="flex flex-col gap-3">
-              {/* <a
+          <div className="flex flex-col gap-4 items-center">
+            <div className="flex flex-col gap-4">
+              <h4 className="text-sm font-semibold text-foreground uppercase tracking-wider">Connect</h4>
+              <div className="flex flex-col gap-3">
+                {/* <a
                 href="https://github.com/heyymasud"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -41,45 +42,48 @@ export default function Footer() {
                 <Github className="w-4 h-4" />
                 <span className="text-sm">GitHub</span>
               </a> */}
-              <a
-                href="https://www.linkedin.com/in/masudyns"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1"
-              >
-                <Linkedin className="w-4 h-4" />
-                <span className="text-sm">LinkedIn</span>
-              </a>
-              <a
-                href="https://instagram.com/masudyns"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1"
-              >
-                <Instagram className="w-4 h-4" />
-                <span className="text-sm">Instagram</span>
-              </a>
+                <a
+                  href="https://www.linkedin.com/in/masudyns"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1"
+                >
+                  <Linkedin className="w-4 h-4" />
+                  <span className="text-sm">LinkedIn</span>
+                </a>
+                <a
+                  href="https://instagram.com/masudyns"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1"
+                >
+                  <Instagram className="w-4 h-4" />
+                  <span className="text-sm">Instagram</span>
+                </a>
+              </div>
             </div>
           </div>
 
-          <div className="flex flex-col gap-4">
-            <h4 className="text-sm font-semibold text-foreground uppercase tracking-wider">About</h4>
-            <div className="flex flex-col gap-3">
-              <a
-                href="https://www.gamerpower.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1"
-              >
-                <span className="text-sm">Data by GamerPower</span>
-                <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </a>
-              <a
-                href="/about"
-                className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1"
-              >
-                <span className="text-sm">About ClaimZone</span>
-              </a>
+          <div className="flex flex-col gap-4 items-end">
+            <div className="flex flex-col gap-4">
+              <h4 className="text-sm font-semibold text-foreground uppercase tracking-wider">About</h4>
+              <div className="flex flex-col gap-3">
+                <a
+                  href="https://www.gamerpower.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1"
+                >
+                  <span className="text-sm">Data by GamerPower</span>
+                  <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </a>
+                <a
+                  href="/about"
+                  className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1"
+                >
+                  <span className="text-sm">About ClaimZone</span>
+                </a>
+              </div>
             </div>
           </div>
         </div>
