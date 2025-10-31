@@ -10,39 +10,57 @@ import { Giveaway } from "@/types/giveaway"
 import CarouselSkeleton from "@/components/skeletons/carousel-skeleton"
 import WorthBannerSkeleton from "@/components/skeletons/worth-banner-skeleton"
 import Pagination from "@/components/pagination"
+import { useAuth } from "@/lib/stores/use-auth";
 
 export default function Home() {
   const [giveaways, setGiveaways] = useState<Giveaway[]>([])
   const [filteredGiveaways, setFilteredGiveaways] = useState<Giveaway[]>([])
-  const [loading, setLoading] = useState(true)
   const [totalWorth, setTotalWorth] = useState<{ active_giveaways_number: number; worth_estimation_usd: string } | null>(null)
   const [selectedPlatform, setSelectedPlatform] = useState<string>("")
   const [selectedType, setSelectedType] = useState<string>("")
   const [sortBy, setSortBy] = useState<string>("newest")
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 9
+  
+  // Use auth store with initialization state
+  const { 
+    user, 
+    userStats, 
+    userFavorites, 
+    loading: authLoading, 
+    initialized 
+  } = useAuth();
+
+  // Combined loading state that waits for both auth initialization and data fetch
+  const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const giveawaysRes = await fetch("/api/giveaways")
-        if (!giveawaysRes.ok) throw new Error("Failed to fetch giveaways")
-        const giveawaysData = await giveawaysRes.json()
-        setGiveaways(giveawaysData)
+        // Wait for auth to be initialized before proceeding if needed
+        if (user !== undefined) {
+          const giveawaysRes = await fetch("/api/giveaways")
+          if (!giveawaysRes.ok) throw new Error("Failed to fetch giveaways")
+          const giveawaysData = await giveawaysRes.json()
+          setGiveaways(giveawaysData)
 
-        const worthRes = await fetch("/api/worth")
-        if (!worthRes.ok) throw new Error("Failed to fetch worth")
-        const worthData = await worthRes.json()
-        setTotalWorth(worthData)
+          const worthRes = await fetch("/api/worth")
+          if (!worthRes.ok) throw new Error("Failed to fetch worth")
+          const worthData = await worthRes.json()
+          setTotalWorth(worthData)
+        }
       } catch (error) {
         console.error("Error fetching data:", error)
       } finally {
-        setLoading(false)
+        setDataLoading(false)
       }
     }
 
-    fetchData()
-  }, [])
+    // Only fetch data when auth is initialized (or if we don't care about auth state)
+    if (initialized || user === null) {
+      fetchData()
+    }
+  }, [initialized, user])
 
   useEffect(() => {
     let filtered = [...giveaways]
@@ -81,10 +99,13 @@ export default function Home() {
 
   const carouselGiveaways = giveaways.slice(0, 8)
 
+  // Combined loading state: true if either auth is loading or data is loading
+  const isLoading = dataLoading
+
   return (
     <div className="min-h-screen bg-background">
 
-      {loading ? (
+      {isLoading ? (
         <>
           <div className="mb-8 pt-8 px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl">
             <CarouselSkeleton />
@@ -117,7 +138,7 @@ export default function Home() {
           setSortBy={setSortBy}
         />
 
-        {loading ? (
+        {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 9 }).map((_, i) => (
               <GiveawaySkeleton key={i} />

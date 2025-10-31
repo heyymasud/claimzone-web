@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft, Heart, Share2, Copy, ExternalLink, Check } from "lucide-react"
-import { useAuth } from "@/lib/auth-context"
+import { useAuth } from "@/lib/stores/use-auth"
 import { Giveaway } from "@/types/giveaway"
 
 export default function GiveawayDetail() {
@@ -16,7 +16,7 @@ export default function GiveawayDetail() {
   const [isFavorited, setIsFavorited] = useState(false)
   const [copied, setCopied] = useState(false)
   const [isClaimed, setIsClaimed] = useState(false)
-  const { user, isFavorite, addFavorite, removeFavorite, addClaim } = useAuth()
+  const { user, userStats, isFavorite, addFavorite, removeFavorite, addClaim } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
@@ -27,10 +27,13 @@ export default function GiveawayDetail() {
         setGiveaway(data)
 
         if (user) {
-          setIsFavorited(isFavorite(Number(id)))
-          // Check if already claimed
-          const stats = JSON.parse(localStorage.getItem("claimzone_stats") || "{}")
-          setIsClaimed(stats.claimedGiveaways?.includes(Number(id)) || false)
+          const isFavoritedResult = await isFavorite(Number(id))
+          setIsFavorited(isFavoritedResult)
+          
+          // Check if already claimed - this needs to be updated to use Supabase
+          if (userStats) {
+            setIsClaimed(userStats.claimed_giveaways?.includes(Number(id)) || false)
+          }
         }
       } catch (error) {
         console.error("Error fetching giveaway:", error)
@@ -40,23 +43,24 @@ export default function GiveawayDetail() {
     }
 
     fetchGiveaway()
-  }, [id, user, isFavorite])
+  }, [id, user, isFavorite, userStats])
 
-  const toggleFavorite = () => {
+  const toggleFavorite = async () => {
     if (!user) {
       router.push("/login")
       return
     }
 
     if (isFavorited) {
-      removeFavorite(Number(id))
+      await removeFavorite(Number(id))
+      setIsFavorited(false)
     } else {
-      addFavorite(Number(id))
+      await addFavorite(Number(id))
+      setIsFavorited(true)
     }
-    setIsFavorited(!isFavorited)
   }
 
-  const handleClaim = () => {
+  const handleClaim = async () => {
     if (!user) {
       router.push("/login")
       return
@@ -64,7 +68,7 @@ export default function GiveawayDetail() {
 
     if (giveaway) {
       const worthValue = Number.parseFloat(giveaway.worth?.replace(/[^0-9.-]+/g, "") || "0")
-      addClaim(Number(id), worthValue)
+      await addClaim(Number(id), worthValue)
       setIsClaimed(true)
     }
   }

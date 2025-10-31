@@ -1,7 +1,8 @@
 export interface UserStats {
-    totalClaimed: number
-    totalWorth: number
-    claimedGiveaways: number[]
+    user_id?: string;
+    total_claimed: number
+    total_worth: number
+    claimed_giveaways: number[]
     username: string
 }
 

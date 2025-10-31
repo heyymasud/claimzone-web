@@ -6,7 +6,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Heart } from "lucide-react"
 import { useState, useEffect } from "react"
-import { useAuth } from "@/lib/auth-context"
+import { useAuth } from "@/lib/stores/use-auth"
 import { Giveaway } from "@/types/giveaway"
 import { useRouter } from "next/navigation"
 
@@ -16,12 +16,17 @@ export default function GiveawayCard({ giveaway }: { giveaway: Giveaway }) {
   const router = useRouter()
 
   useEffect(() => {
-    if (user) {
-      setIsFavorited(isFavorite(giveaway.id))
+    const checkFavorite = async () => {
+      if (user) {
+        const result = await isFavorite(giveaway.id)
+        setIsFavorited(result)
+      }
     }
+    
+    checkFavorite()
   }, [giveaway.id, user, isFavorite])
 
-  const toggleFavorite = (e: React.MouseEvent) => {
+  const toggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault()
     if (!user) {
       router.push("/login")
@@ -29,11 +34,12 @@ export default function GiveawayCard({ giveaway }: { giveaway: Giveaway }) {
     }
 
     if (isFavorited) {
-      removeFavorite(giveaway.id)
+      await removeFavorite(giveaway.id)
+      setIsFavorited(false)
     } else {
-      addFavorite(giveaway.id)
+      await addFavorite(giveaway.id)
+      setIsFavorited(true)
     }
-    setIsFavorited(!isFavorited)
   }
 
   const platformColors: Record<string, string> = {
