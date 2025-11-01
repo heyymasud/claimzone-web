@@ -6,7 +6,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Heart } from "lucide-react"
 import { useState, useEffect } from "react"
-import { useAuth } from "@/lib/auth-context"
+import { useAuth } from "@/hooks/use-auth"
 import { Giveaway } from "@/types/giveaway"
 import { useRouter } from "next/navigation"
 
@@ -16,12 +16,17 @@ export default function GiveawayCard({ giveaway }: { giveaway: Giveaway }) {
   const router = useRouter()
 
   useEffect(() => {
-    if (user) {
-      setIsFavorited(isFavorite(giveaway.id))
+    const checkFavorite = async () => {
+      if (user) {
+        const result = isFavorite(giveaway.id)
+        setIsFavorited(result)
+      }
     }
+    
+    checkFavorite()
   }, [giveaway.id, user, isFavorite])
 
-  const toggleFavorite = (e: React.MouseEvent) => {
+  const toggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault()
     if (!user) {
       router.push("/login")
@@ -29,28 +34,42 @@ export default function GiveawayCard({ giveaway }: { giveaway: Giveaway }) {
     }
 
     if (isFavorited) {
-      removeFavorite(giveaway.id)
+      await removeFavorite(giveaway.id)
+      setIsFavorited(false)
     } else {
-      addFavorite(giveaway.id)
+      await addFavorite(giveaway.id)
+      setIsFavorited(true)
     }
-    setIsFavorited(!isFavorited)
   }
 
   const platformColors: Record<string, string> = {
-    steam: "bg-blue-600",
-    epic: "bg-purple-600",
+    pc: "bg-blue-500",
+    steam: "bg-[#2F4F4F]",
+    "epic games store": "bg-purple-600",
     gog: "bg-red-600",
     ubisoft: "bg-blue-500",
     origin: "bg-orange-600",
     twitch: "bg-purple-500",
-    playstation: "bg-blue-700",
+    "playstation 5": "bg-blue-700",
+    "playstation 4": "bg-blue-700",
     xbox: "bg-green-600",
+    "xbox one": "bg-green-600",
+    "xbox series x|s": "bg-green-600",
+    "nintendo switch": "bg-red-600",
+    android: "bg-green-600",
+    ios: "bg-blue-600",
+    "drm-free": "bg-green-600",
   }
 
   const typeColors: Record<string, string> = {
     game: "bg-accent",
-    loot: "bg-secondary",
-    beta: "bg-primary",
+    dlc: "bg-secondary",
+    "early access": "bg-primary",
+    other: "bg-muted",
+  }
+
+  const handlePlatformColor = (platform: string) => {
+    return platformColors[platform.toLowerCase()] || "bg-muted"
   }
 
   const platformKey = giveaway.platforms?.toLowerCase().split(",")[0].trim() || "steam"
@@ -67,6 +86,7 @@ export default function GiveawayCard({ giveaway }: { giveaway: Giveaway }) {
               src={giveaway.thumbnail || giveaway.image || "/placeholder.svg?height=192&width=400&query=game"}
               alt={giveaway.title}
               fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               className="object-cover group-hover:scale-105 transition-transform duration-300"
             />
             <button
@@ -86,9 +106,11 @@ export default function GiveawayCard({ giveaway }: { giveaway: Giveaway }) {
 
             {/* Tags */}
             <div className="flex gap-2 mb-3 flex-wrap">
-              <span className={`text-xs font-semibold text-white px-2 py-1 rounded ${platformColor}`}>
-                {giveaway.platforms?.split(",")[0].trim() || "Steam"}
-              </span>
+              {giveaway.platforms?.split(",")?.map((platform, i) => (
+                <span key={i} className={`text-xs font-semibold text-white px-2 py-1 rounded ${handlePlatformColor(platform.trim())}`}>
+                  {platform.trim()}
+                </span>
+              ))}
               <span className={`text-xs font-semibold text-white px-2 py-1 rounded ${typeColor}`}>
                 {giveaway.type || "Game"}
               </span>

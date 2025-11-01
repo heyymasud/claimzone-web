@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { useAuth } from "@/lib/auth-context"
+import { useAuth } from "@/hooks/use-auth"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Trophy, Gift, TrendingUp, LogOut, Heart } from "lucide-react"
@@ -11,45 +11,62 @@ import GiveawayCard from "@/components/giveaway-card"
 import { Giveaway } from "@/types/giveaway"
 
 export default function DashboardPage() {
-  const { user, userStats, logout, getFavorites, isLoading } = useAuth()
+  const { 
+    user, 
+    userStats, 
+    userFavorites, 
+    initialized, 
+    logout, 
+    loadFavorites 
+  } = useAuth()
   const router = useRouter()
   const [claimedGiveaways, setClaimedGiveaways] = useState<Giveaway[]>([])
   const [favoriteGiveaways, setFavoriteGiveaways] = useState<Giveaway[]>([])
+  const [allGiveaways, setAllGiveaways] = useState<Giveaway[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    console.log("user", user)
-    if (!user && !isLoading) {
+    if (!user && initialized) {
       router.push("/login")
       return
     }
 
-    const fetchData = async () => {
-      try {
-        const res = await fetch("/api/giveaways")
-        const allGiveaways = await res.json()
+    // Load favorites if not loaded yet
+    if (user && initialized && userFavorites.length === 0) {
+      loadFavorites();
+    }
+  }, [user, initialized, userFavorites.length, loadFavorites, router])
 
-        // Get claimed giveaways
-        if (userStats?.claimedGiveaways) {
-          const claimed = allGiveaways.filter((g: Giveaway) => userStats.claimedGiveaways.includes(g.id))
-          setClaimedGiveaways(claimed)
+  useEffect(() => {
+    const fetchGiveaways = async () => {
+      if (!initialized || !user) return;
+      
+      try {
+        setLoading(true);
+        const res = await fetch("/api/giveaways");
+        const giveaways = await res.json();
+        setAllGiveaways(giveaways);
+
+        // Filter claimed giveaways
+        if (userStats?.claimed_giveaways) {
+          const claimed = giveaways.filter((g: Giveaway) => userStats.claimed_giveaways.includes(g.id));
+          setClaimedGiveaways(claimed);
         }
 
-        // Get favorite giveaways
-        const favorites = getFavorites()
-        if (favorites.length > 0) {
-          const favorited = allGiveaways.filter((g: Giveaway) => favorites.includes(g.id))
-          setFavoriteGiveaways(favorited)
+        // Filter favorite giveaways
+        if (userFavorites.length > 0) {
+          const favorites = giveaways.filter((g: Giveaway) => userFavorites.includes(g.id));
+          setFavoriteGiveaways(favorites);
         }
       } catch (error) {
-        console.error("Error fetching data:", error)
+        console.error("Error fetching giveaways:", error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchData()
-  }, [user, userStats, getFavorites, router])
+    fetchGiveaways();
+  }, [user, initialized, userStats?.claimed_giveaways, userFavorites]);
 
   if (!user) {
     return null
@@ -76,7 +93,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Total Claimed</p>
-                <p className="text-3xl font-bold text-foreground">{userStats?.totalClaimed || 0}</p>
+                <p className="text-3xl font-bold text-foreground">{userStats?.total_claimed || 0}</p>
               </div>
               <Gift className="w-12 h-12 text-accent opacity-20" />
             </div>
@@ -86,7 +103,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Total Worth</p>
-                <p className="text-3xl font-bold text-accent">${userStats?.totalWorth.toFixed(2) || "0.00"}</p>
+                <p className="text-3xl font-bold text-accent">${userStats?.total_worth?.toFixed(2) || "0.00"}</p>
               </div>
               <TrendingUp className="w-12 h-12 text-accent opacity-20" />
             </div>
@@ -96,7 +113,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Favorites</p>
-                <p className="text-3xl font-bold text-foreground">{getFavorites().length}</p>
+                <p className="text-3xl font-bold text-foreground">{userFavorites.length}</p>
               </div>
               <Heart className="w-12 h-12 text-destructive opacity-20" />
             </div>

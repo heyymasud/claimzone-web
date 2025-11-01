@@ -16,21 +16,21 @@ export default function Footer() {
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-          <div className="flex flex-col gap-4">
-            <div>
+          <div className="flex flex-col gap-4 md:items-start items-center">
+            <div className="text-center md:text-left">
               <h3 className="text-lg font-bold text-foreground mb-1">
                 Built by
               </h3>
               <p className="text-2xl font-bold bg-linear-to-r from-primary to-accent bg-clip-text text-transparent">M Mas'ud Yunus</p>
               <p className="text-sm text-muted-foreground mt-1">Full Stack Developer</p>
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed text-center md:text-left">
               Crafting modern web experiences with a passion for gaming and open-source.
             </p>
           </div>
 
           <div className="flex flex-col gap-4 items-center">
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 md:items-start items-center">
               <h4 className="text-sm font-semibold text-foreground uppercase tracking-wider">Connect</h4>
               <div className="flex flex-col gap-3">
                 {/* <a
@@ -64,10 +64,10 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-4 items-end">
-            <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-4 md:items-end items-center">
+            <div className="flex flex-col gap-4 md:items-start items-center">
               <h4 className="text-sm font-semibold text-foreground uppercase tracking-wider">About</h4>
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3 md:items-start items-center">
                 <a
                   href="https://www.gamerpower.com"
                   target="_blank"
@@ -75,7 +75,7 @@ export default function Footer() {
                   className="group flex items-center gap-2 text-muted-foreground hover:text-primary transition-all duration-300 hover:translate-x-1"
                 >
                   <span className="text-sm">Data by GamerPower</span>
-                  <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <ExternalLink className="w-3 h-3 transition-opacity" />
                 </a>
                 <a
                   href="/about"

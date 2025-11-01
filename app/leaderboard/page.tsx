@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Trophy, Medal, Flame } from "lucide-react"
 import { UserStats } from "@/types/users"
 import LeaderboardRowSkeleton from "@/components/skeletons/leaderboard-row-skeleton"
+import { createClient } from "@/lib/supabase/client"
 
 export default function LeaderboardPage() {
   const [topByWorth, setTopByWorth] = useState<UserStats[]>([])
@@ -14,30 +15,21 @@ export default function LeaderboardPage() {
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
+      setLoading(true);
+
       try {
-        // Get all users and their stats
-        const users = JSON.parse(localStorage.getItem("claimzone_users") || "[]")
+        const res = await fetch("/api/leaderboard");
+        const data = await res.json();
 
-        const leaderboardData: UserStats[] = users
-          .map((user: any) => {
-            const stats = JSON.parse(
-              localStorage.getItem(`claimzone_stats_${user.id}`) || '{"totalWorth": 0, "claimedGiveaways": []}',
-            )
-            return {
-              username: user.username,
-              totalWorth: stats.totalWorth || 0,
-              totalClaimed: stats.claimedGiveaways?.length || 0,
-            }
-          })
-          .filter((user: UserStats) => user.totalClaimed > 0 || user.totalWorth > 0)
+        const validData = (data || []).filter(
+          (u: { total_claimed: any; total_worth: any }) => (u.total_claimed ?? 0) > 0 || (u.total_worth ?? 0) > 0
+        );
 
-        // Sort by worth
-        const sortedByWorth = [...leaderboardData].sort((a, b) => b.totalWorth - a.totalWorth)
-        setTopByWorth(sortedByWorth)
+        const sortedByWorth = [...validData].sort((a, b) => b.total_worth - a.total_worth);
+        const sortedByClaims = [...validData].sort((a, b) => b.total_claimed - a.total_claimed);
 
-        // Sort by claims
-        const sortedByClaims = [...leaderboardData].sort((a, b) => b.totalClaimed - a.totalClaimed)
-        setTopByClaims(sortedByClaims)
+        setTopByWorth(sortedByWorth);
+        setTopByClaims(sortedByClaims);
       } catch (error) {
         console.error("Error fetching leaderboard:", error)
       } finally {
@@ -63,6 +55,7 @@ export default function LeaderboardPage() {
   }
 
   const leaderboard = activeTab === "worth" ? topByWorth : topByClaims
+  console.log("leaderboard", leaderboard)
 
   return (
     <div className="min-h-screen bg-background">
@@ -80,17 +73,15 @@ export default function LeaderboardPage() {
         <div className="flex gap-4 mb-8">
           <button
             onClick={() => setActiveTab("worth")}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-              activeTab === "worth" ? "bg-accent text-accent-foreground" : "bg-muted text-foreground hover:bg-muted/80"
-            }`}
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${activeTab === "worth" ? "bg-accent text-accent-foreground" : "bg-muted text-foreground hover:bg-muted/80"
+              }`}
           >
             Top by Worth
           </button>
           <button
             onClick={() => setActiveTab("claims")}
-            className={`px-6 py-3 rounded-lg font-semibold transition-all ${
-              activeTab === "claims" ? "bg-accent text-accent-foreground" : "bg-muted text-foreground hover:bg-muted/80"
-            }`}
+            className={`px-6 py-3 rounded-lg font-semibold transition-all ${activeTab === "claims" ? "bg-accent text-accent-foreground" : "bg-muted text-foreground hover:bg-muted/80"
+              }`}
           >
             Top by Claims
           </button>
@@ -132,13 +123,13 @@ export default function LeaderboardPage() {
                       {activeTab === "worth" ? "Total Worth" : "Claims"}
                     </p>
                     <p className="text-2xl font-bold text-accent">
-                      {activeTab === "worth" ? `$${user.totalWorth.toFixed(2)}` : user.totalClaimed}
+                      {activeTab === "worth" ? `$${user.total_worth.toFixed(2)}` : user.total_claimed}
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="text-xs text-muted-foreground mb-1">{activeTab === "worth" ? "Claims" : "Worth"}</p>
                     <p className="text-lg font-semibold text-foreground">
-                      {activeTab === "worth" ? user.totalClaimed : `$${user.totalWorth.toFixed(2)}`}
+                      {activeTab === "worth" ? user.total_claimed : `$${user.total_worth.toFixed(2)}`}
                     </p>
                   </div>
                 </div>

@@ -5,48 +5,62 @@ import { useRouter } from "next/navigation"
 import GiveawayCard from "@/components/giveaway-card"
 import GiveawaySkeleton from "@/components/skeletons/giveaway-skeleton"
 import { Heart } from "lucide-react"
-import { useAuth } from "@/lib/auth-context"
+import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 import { Giveaway } from "@/types/giveaway"
 
 export default function FavoritesPage() {
   const [favorites, setFavorites] = useState<Giveaway[]>([])
+  const [allGiveaways, setAllGiveaways] = useState<Giveaway[]>([])
   const [loading, setLoading] = useState(true)
-  const { user, getFavorites } = useAuth()
+  const { user, userFavorites, initialized, loadFavorites } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
     if (!user) {
+      // Auth is initialized but user is not logged in
       router.push("/login")
       return
     }
 
-    const fetchFavorites = async () => {
-      try {
-        const favoriteIds = getFavorites()
-
-        if (favoriteIds.length === 0) {
-          setFavorites([])
-          setLoading(false)
-          return
-        }
-
-        const res = await fetch("/api/giveaways")
-        const allGiveaways = await res.json()
-        const favoriteGiveaways = allGiveaways.filter((g: Giveaway) => favoriteIds.includes(g.id))
-        setFavorites(favoriteGiveaways)
-      } catch (error) {
-        console.error("Error fetching favorites:", error)
-      } finally {
-        setLoading(false)
-      }
+    if (user) {
+      // Load user's favorites
+      loadFavorites()
     }
+  }, [user, loadFavorites, router])
 
-    fetchFavorites()
-  }, [user, getFavorites, router])
+  // Fetch all giveaways once we know the user is authenticated
+  useEffect(() => {
+    if (user) {
+      const fetchAllGiveaways = async () => {
+        try {
+          const res = await fetch("/api/giveaways")
+          if (!res.ok) throw new Error("Failed to fetch giveaways")
+          const giveawaysData = await res.json()
+          setAllGiveaways(giveawaysData)
+        } catch (error) {
+          console.error("Error fetching giveaways:", error)
+        }
+      }
 
-  if (!user) {
-    return null
+      fetchAllGiveaways()
+    }
+  }, [user, initialized])
+
+  // Update favorites when userFavorites changes
+  useEffect(() => {
+    if (allGiveaways.length > 0 && userFavorites.length >= 0) { // >= 0 because it can be empty
+      const favoriteGiveaways = allGiveaways.filter((g: Giveaway) => userFavorites.includes(g.id))
+      setFavorites(favoriteGiveaways)
+      setLoading(false) // Set loading to false once we have favorites
+    }
+  }, [allGiveaways, userFavorites])
+
+  // Show loading state while waiting for auth initialization or data loading
+  const pageLoading = !initialized || loading
+
+  if (!user && initialized) {
+    return null // Will redirect to login via useEffect
   }
 
   return (
@@ -60,7 +74,7 @@ export default function FavoritesPage() {
           <p className="text-muted-foreground">Giveaways you've saved for later</p>
         </div>
 
-        {loading ? (
+        {pageLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
               <GiveawaySkeleton key={i} />

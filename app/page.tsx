@@ -10,74 +10,37 @@ import { Giveaway } from "@/types/giveaway"
 import CarouselSkeleton from "@/components/skeletons/carousel-skeleton"
 import WorthBannerSkeleton from "@/components/skeletons/worth-banner-skeleton"
 import Pagination from "@/components/pagination"
+import { useGiveaway } from "@/hooks/use-giveaway"
+import { Button } from "@/components/ui/button"
+import { RefreshCcw } from "lucide-react"
 
 export default function Home() {
-  const [giveaways, setGiveaways] = useState<Giveaway[]>([])
-  const [filteredGiveaways, setFilteredGiveaways] = useState<Giveaway[]>([])
-  const [loading, setLoading] = useState(true)
-  const [totalWorth, setTotalWorth] = useState<{ active_giveaways_number: number; worth_estimation_usd: string } | null>(null)
-  const [selectedPlatform, setSelectedPlatform] = useState<string>("")
-  const [selectedType, setSelectedType] = useState<string>("")
-  const [sortBy, setSortBy] = useState<string>("newest")
-  const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 9
+  const {
+    giveaways,
+    totalWorth,
+    filteredGiveaways,
+    paginatedGiveaways,
+    totalPages,
+    startIndex,
+    endIndex,
+    selectedPlatform,
+    setSelectedPlatform,
+    selectedType,
+    setSelectedType,
+    sortBy,
+    setSortBy,
+    currentPage,
+    setCurrentPage,
+    loading,
+    fetchGiveaways,
+    refreshGiveaways,
+  } = useGiveaway()
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const giveawaysRes = await fetch("/api/giveaways")
-        if (!giveawaysRes.ok) throw new Error("Failed to fetch giveaways")
-        const giveawaysData = await giveawaysRes.json()
-        setGiveaways(giveawaysData)
-
-        const worthRes = await fetch("/api/worth")
-        if (!worthRes.ok) throw new Error("Failed to fetch worth")
-        const worthData = await worthRes.json()
-        setTotalWorth(worthData)
-      } catch (error) {
-        console.error("Error fetching data:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchData()
+    fetchGiveaways()
+    const interval = setInterval(() => refreshGiveaways(), 10 * 60 * 1000)
+    return () => clearInterval(interval)
   }, [])
-
-  useEffect(() => {
-    let filtered = [...giveaways]
-
-    // Apply platform filter
-    if (selectedPlatform) {
-      filtered = filtered.filter((g) => g.platforms?.toLowerCase().includes(selectedPlatform.toLowerCase()))
-    }
-
-    // Apply type filter
-    if (selectedType) {
-      filtered = filtered.filter((g) => g.type?.toLowerCase() === selectedType.toLowerCase())
-    }
-
-    // Apply sorting
-    if (sortBy === "value") {
-      filtered.sort((a, b) => {
-        const worthA = Number.parseFloat(a.worth?.replace(/[^0-9.-]+/g, "") || "0")
-        const worthB = Number.parseFloat(b.worth?.replace(/[^0-9.-]+/g, "") || "0")
-        return worthB - worthA
-      })
-    } else if (sortBy === "ending") {
-      filtered.sort((a, b) => new Date(a.end_date).getTime() - new Date(b.end_date).getTime())
-    } else {
-      // newest (default)
-      filtered.sort((a, b) => new Date(b.end_date).getTime() - new Date(a.end_date).getTime())
-    }
-
-    setFilteredGiveaways(filtered)
-  }, [giveaways, selectedPlatform, selectedType, sortBy])
-
-  const totalPages = Math.ceil(filteredGiveaways.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-  const paginatedGiveaways = filteredGiveaways.slice(startIndex, endIndex)
 
   const carouselGiveaways = giveaways.slice(0, 8)
 
@@ -125,10 +88,17 @@ export default function Home() {
           </div>
         ) : (
           <>
-            <p className="text-muted-foreground mb-6">
-              Showing {startIndex + 1}-{Math.min(endIndex, filteredGiveaways.length)} of {filteredGiveaways.length}{" "}
-              giveaways
-            </p>
+            <div id="giveaways" className="flex justify-between scroll-mt-115 md:scroll-m-80">
+              <p className="text-muted-foreground mb-6">
+                Showing {startIndex + 1}-{Math.min(endIndex, filteredGiveaways.length)} of {filteredGiveaways.length}{" "}
+                giveaways
+              </p>
+              <div className="flex justify-center">
+                <Button onClick={() => refreshGiveaways()} disabled={loading} className="group">
+                  {loading ? "Refreshing..." : <RefreshCcw className="h-4 w-4 group-hover:animate-spin" aria-label="Refreshing" role="status" />}
+                </Button>
+              </div>
+            </div>
             {filteredGiveaways.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20">
                 <p className="text-xl text-muted-foreground mb-4">No giveaways found</p>

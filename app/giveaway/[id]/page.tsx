@@ -5,8 +5,9 @@ import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft, Heart, Share2, Copy, ExternalLink, Check } from "lucide-react"
-import { useAuth } from "@/lib/auth-context"
+import { useAuth } from "@/hooks/use-auth"
 import { Giveaway } from "@/types/giveaway"
+import { useToast } from "@/hooks/use-toast"
 
 export default function GiveawayDetail() {
   const params = useParams()
@@ -16,8 +17,10 @@ export default function GiveawayDetail() {
   const [isFavorited, setIsFavorited] = useState(false)
   const [copied, setCopied] = useState(false)
   const [isClaimed, setIsClaimed] = useState(false)
-  const { user, isFavorite, addFavorite, removeFavorite, addClaim } = useAuth()
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const { user, userStats, isFavorite, addFavorite, removeFavorite, addClaim } = useAuth()
   const router = useRouter()
+  const { toast } = useToast()
 
   useEffect(() => {
     const fetchGiveaway = async () => {
@@ -27,10 +30,13 @@ export default function GiveawayDetail() {
         setGiveaway(data)
 
         if (user) {
-          setIsFavorited(isFavorite(Number(id)))
-          // Check if already claimed
-          const stats = JSON.parse(localStorage.getItem("claimzone_stats") || "{}")
-          setIsClaimed(stats.claimedGiveaways?.includes(Number(id)) || false)
+          const isFavoritedResult = isFavorite(Number(id))
+          setIsFavorited(isFavoritedResult)
+
+          // Check if already claimed - this needs to be updated to use Supabase
+          if (userStats) {
+            setIsClaimed(userStats.claimed_giveaways?.includes(Number(id)) || false)
+          }
         }
       } catch (error) {
         console.error("Error fetching giveaway:", error)
@@ -40,33 +46,49 @@ export default function GiveawayDetail() {
     }
 
     fetchGiveaway()
-  }, [id, user, isFavorite])
+  }, [id, user, isFavorite, userStats])
 
-  const toggleFavorite = () => {
+  const toggleFavorite = async () => {
     if (!user) {
       router.push("/login")
       return
     }
 
     if (isFavorited) {
-      removeFavorite(Number(id))
+      await removeFavorite(Number(id))
+      setIsFavorited(false)
     } else {
-      addFavorite(Number(id))
+      await addFavorite(Number(id))
+      setIsFavorited(true)
     }
-    setIsFavorited(!isFavorited)
   }
 
-  const handleClaim = () => {
+  const handleClaimLoots = async () => {
     if (!user) {
-      router.push("/login")
+      setShowLoginPrompt(true)
       return
     }
 
     if (giveaway) {
       const worthValue = Number.parseFloat(giveaway.worth?.replace(/[^0-9.-]+/g, "") || "0")
-      addClaim(Number(id), worthValue)
+      await addClaim(Number(id), worthValue)
       setIsClaimed(true)
+
+      // Open the giveaway link
+      window.open(giveaway.open_giveaway_url, "_blank")
+
+      toast({
+        title: "Loot Claimed!",
+        description: "Your claim has been recorded. Good luck!",
+      })
     }
+  }
+
+  const handleOpenLinkWithoutLogin = () => {
+    if (giveaway) {
+      window.open(giveaway.open_giveaway_url, "_blank")
+    }
+    setShowLoginPrompt(false)
   }
 
   const copyLink = () => {
@@ -200,13 +222,12 @@ export default function GiveawayDetail() {
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
               <button
-                onClick={handleClaim}
+                onClick={handleClaimLoots}
                 disabled={isClaimed}
-                className={`flex-1 font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-all ${
-                  isClaimed
+                className={`flex-1 font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-all ${isClaimed
                     ? "bg-green-600/20 text-green-400 border border-green-600/50"
                     : "bg-accent text-accent-foreground hover:opacity-90"
-                }`}
+                  }`}
               >
                 {isClaimed ? (
                   <>
@@ -216,19 +237,10 @@ export default function GiveawayDetail() {
                 ) : (
                   <>
                     <ExternalLink className="w-5 h-5" />
-                    Claim Giveaway
+                    Claim Loots
                   </>
                 )}
               </button>
-              <a
-                href={giveaway.open_giveaway_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 bg-muted text-foreground font-bold py-3 px-6 rounded-lg hover:bg-muted/80 transition-colors flex items-center justify-center gap-2"
-              >
-                <ExternalLink className="w-5 h-5" />
-                Open Link
-              </a>
               <button
                 onClick={copyLink}
                 className="flex-1 bg-muted text-foreground font-bold py-3 px-6 rounded-lg hover:bg-muted/80 transition-colors flex items-center justify-center gap-2"
@@ -244,6 +256,58 @@ export default function GiveawayDetail() {
                 Share
               </button>
             </div>
+            {showLoginPrompt && !user && (
+              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="bg-card border border-border rounded-lg p-8 max-w-md w-full animate-in fade-in slide-in-from-bottom-4">
+                  <h2 className="text-2xl font-bold text-foreground mb-3">Sign in to Track Your Claims</h2>
+                  <p className="text-foreground/80 mb-6">Create a free account to unlock exclusive benefits:</p>
+                  <ul className="space-y-2 mb-6 text-sm text-foreground/80">
+                    <li className="flex items-start gap-2">
+                      <span className="text-accent mt-1">✓</span>
+                      <span>Track all claimed giveaways and total worth</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-accent mt-1">✓</span>
+                      <span>Save favorite giveaways for quick access</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-accent mt-1">✓</span>
+                      <span>Compete on the leaderboard with other gamers</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-accent mt-1">✓</span>
+                      <span>Access your personal gaming stats dashboard</span>
+                    </li>
+                  </ul>
+                  <div className="flex flex-col gap-3">
+                    <Link
+                      href="/register"
+                      className="bg-accent text-accent-foreground font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity text-center"
+                    >
+                      Create Account
+                    </Link>
+                    <Link
+                      href="/login"
+                      className="bg-primary text-primary-foreground font-bold py-2 px-4 rounded-lg hover:opacity-90 transition-opacity text-center"
+                    >
+                      Sign In
+                    </Link>
+                    <button
+                      onClick={handleOpenLinkWithoutLogin}
+                      className="bg-muted text-foreground font-bold py-2 px-4 rounded-lg hover:bg-muted/80 transition-colors"
+                    >
+                      Continue Without Signing In
+                    </button>
+                    <button
+                      onClick={() => setShowLoginPrompt(false)}
+                      className="text-foreground/60 hover:text-foreground transition-colors text-sm"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

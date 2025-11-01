@@ -1,9 +1,9 @@
 "use client"
 
 import Link from "next/link"
-import { Heart, LogOut, User, Menu, X, Gamepad } from "lucide-react"
+import { LogOut, User, Menu, X, Gamepad } from "lucide-react"
 import { useState } from "react"
-import { useAuth } from "@/lib/auth-context"
+import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 
 export default function Navbar() {
@@ -97,7 +97,14 @@ export default function Navbar() {
                     <User className="w-4 h-4" />
                     <span className="text-sm font-medium">{user.username}</span>
                   </Link>
-                  <Button onClick={logout} variant="ghost" size="sm" className="text-foreground/80 hover:text-accent">
+                  <Button 
+                    onClick={async () => {
+                      await logout();
+                    }} 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-foreground/80 hover:text-accent"
+                  >
                     <LogOut className="w-4 h-4" />
                   </Button>
                 </div>
@@ -161,8 +168,8 @@ export default function Navbar() {
                       <span className="text-sm font-medium">{user.username}</span>
                     </Link>
                     <button
-                      onClick={() => {
-                        logout()
+                      onClick={async () => {
+                        await logout();
                         setMobileMenuOpen(false)
                       }}
                       className="flex items-center gap-2 px-4 py-2 rounded-lg text-foreground/80 hover:bg-destructive/10 hover:text-destructive transition-colors"

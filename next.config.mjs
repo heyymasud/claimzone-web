@@ -1,10 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   images: {
-    unoptimized: true,
+    remotePatterns: [
+      new URL('https://www.gamerpower.com/offers/**'),
+    ],
   },
 }
 
