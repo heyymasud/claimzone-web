@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { useToast } from "@/hooks/use-toast"
 
 export default function ConfirmEmailClient({
     searchParams,
@@ -15,7 +16,8 @@ export default function ConfirmEmailClient({
     const params = use(searchParams)
     const email = params.email || ""
     const [canResend, setCanResend] = useState(false)
-    const [resendCooldown, setResendCooldown] = useState(60)
+    const [resendCooldown, setResendCooldown] = useState(0)
+    const { toast } = useToast()
 
     useEffect(() => {
         if (resendCooldown > 0) {
@@ -29,8 +31,11 @@ export default function ConfirmEmailClient({
     const handleResendEmail = () => {
         setCanResend(false)
         setResendCooldown(60)
-        // In production, this would send a real confirmation email
-        alert(`Confirmation email resent to ${email}`)
+        toast({
+            title: "Email Resent!",
+            description: `Confirmation email has been sent to ${email}. Check your inbox and spam folder.`,
+            duration: 4000,
+        })
     }
 
     return (
