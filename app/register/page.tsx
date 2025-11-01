@@ -5,7 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { useAuth } from "@/lib/stores/use-auth"
+import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
@@ -38,7 +38,7 @@ export default function RegisterPage() {
 
     try {
       await register(username, email, password)
-      router.push("/")
+      router.push(`/register/confirm-email?email=${encodeURIComponent(email)}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Registration failed")
     } finally {

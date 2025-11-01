@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { useAuth } from "@/lib/stores/use-auth"
+import { useAuth } from "@/hooks/use-auth"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Trophy, Gift, TrendingUp, LogOut, Heart } from "lucide-react"

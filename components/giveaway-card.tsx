@@ -6,7 +6,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Heart } from "lucide-react"
 import { useState, useEffect } from "react"
-import { useAuth } from "@/lib/stores/use-auth"
+import { useAuth } from "@/hooks/use-auth"
 import { Giveaway } from "@/types/giveaway"
 import { useRouter } from "next/navigation"
 
@@ -86,6 +86,7 @@ export default function GiveawayCard({ giveaway }: { giveaway: Giveaway }) {
               src={giveaway.thumbnail || giveaway.image || "/placeholder.svg?height=192&width=400&query=game"}
               alt={giveaway.title}
               fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               className="object-cover group-hover:scale-105 transition-transform duration-300"
             />
             <button

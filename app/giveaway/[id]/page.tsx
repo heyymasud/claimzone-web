@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft, Heart, Share2, Copy, ExternalLink, Check } from "lucide-react"
-import { useAuth } from "@/lib/stores/use-auth"
+import { useAuth } from "@/hooks/use-auth"
 import { Giveaway } from "@/types/giveaway"
 
 export default function GiveawayDetail() {

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import GiveawayCard from "@/components/giveaway-card"
 import GiveawaySkeleton from "@/components/skeletons/giveaway-skeleton"
 import { Heart } from "lucide-react"
-import { useAuth } from "@/lib/stores/use-auth"
+import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 import { Giveaway } from "@/types/giveaway"
 
@@ -17,21 +17,21 @@ export default function FavoritesPage() {
   const router = useRouter()
 
   useEffect(() => {
-    if (!user && initialized) {
+    if (!user) {
       // Auth is initialized but user is not logged in
       router.push("/login")
       return
     }
 
-    if (user && initialized) {
+    if (user) {
       // Load user's favorites
       loadFavorites()
     }
-  }, [user, initialized, loadFavorites, router])
+  }, [user, loadFavorites, router])
 
   // Fetch all giveaways once we know the user is authenticated
   useEffect(() => {
-    if (user && initialized) {
+    if (user) {
       const fetchAllGiveaways = async () => {
         try {
           const res = await fetch("/api/giveaways")

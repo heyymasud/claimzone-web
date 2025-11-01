@@ -1,5 +1,5 @@
+import { useAuthStore } from '@/lib/stores/auth-store';
 import { useStore } from 'zustand';
-import { useAuthStore } from './auth-store';
 
 // Custom hook to access the auth store with proper React reactivity
 export const useAuth = () => {
