@@ -109,24 +109,6 @@ export const useAuthStore = create<AuthStore>((set, get) => {
       });
 
       if (error) throw new Error(error.message);
-
-      // Buat stats default saat user berhasil signup
-      if (data.user) {
-        const defaultStats: UserStats = {
-          username,
-          total_claimed: 0,
-          total_worth: 0,
-          claimed_giveaways: [],
-        };
-
-        const { error: insertError } = await supabase
-          .from('user_stats')
-          .insert([{ user_id: data.user.id, ...defaultStats }]);
-
-        if (insertError) {
-          console.error('Error creating user stats after registration:', insertError);
-        }
-      }
     },
 
     /** LOGOUT */

@@ -10,8 +10,9 @@ import { Giveaway } from "@/types/giveaway"
 import CarouselSkeleton from "@/components/skeletons/carousel-skeleton"
 import WorthBannerSkeleton from "@/components/skeletons/worth-banner-skeleton"
 import Pagination from "@/components/pagination"
-import { useAuth } from "@/hooks/use-auth";
 import { useGiveaway } from "@/hooks/use-giveaway"
+import { Button } from "@/components/ui/button"
+import { RefreshCcw } from "lucide-react"
 
 export default function Home() {
   const {
@@ -87,10 +88,17 @@ export default function Home() {
           </div>
         ) : (
           <>
-            <p className="text-muted-foreground mb-6">
-              Showing {startIndex + 1}-{Math.min(endIndex, filteredGiveaways.length)} of {filteredGiveaways.length}{" "}
-              giveaways
-            </p>
+            <div id="giveaways" className="flex justify-between scroll-mt-115 md:scroll-m-80">
+              <p className="text-muted-foreground mb-6">
+                Showing {startIndex + 1}-{Math.min(endIndex, filteredGiveaways.length)} of {filteredGiveaways.length}{" "}
+                giveaways
+              </p>
+              <div className="flex justify-center">
+                <Button onClick={() => refreshGiveaways()} disabled={loading} className="group">
+                  {loading ? "Refreshing..." : <RefreshCcw className="h-4 w-4 group-hover:animate-spin" aria-label="Refreshing" role="status" />}
+                </Button>
+              </div>
+            </div>
             {filteredGiveaways.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20">
                 <p className="text-xl text-muted-foreground mb-4">No giveaways found</p>

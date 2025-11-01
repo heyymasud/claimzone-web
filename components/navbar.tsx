@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Heart, LogOut, User, Menu, X, Gamepad } from "lucide-react"
+import { LogOut, User, Menu, X, Gamepad } from "lucide-react"
 import { useState } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"

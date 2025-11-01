@@ -18,7 +18,7 @@ export default function GiveawayCard({ giveaway }: { giveaway: Giveaway }) {
   useEffect(() => {
     const checkFavorite = async () => {
       if (user) {
-        const result = await isFavorite(giveaway.id)
+        const result = isFavorite(giveaway.id)
         setIsFavorited(result)
       }
     }

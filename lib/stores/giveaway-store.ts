@@ -161,6 +161,8 @@ export const useGiveawayStore = create<GiveawayState>()(
             setCurrentPage: (page) => {
                 set({ currentPage: page })
                 get().applyFilters()
+                const element = document.getElementById(`giveaways`);
+                if (element) element.scrollIntoView({ behavior: "smooth" });
             },
         }),
         {

@@ -15,20 +15,14 @@ export default function LeaderboardPage() {
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
-      const supabase = createClient();
       setLoading(true);
 
       try {
-        const { data, error } = await supabase
-          .from("user_stats")
-          .select("username, total_worth, total_claimed, claimed_giveaways")
-          .order("total_worth", { ascending: false })
-          .limit(100);
-
-        if (error) throw error;
+        const res = await fetch("/api/leaderboard");
+        const data = await res.json();
 
         const validData = (data || []).filter(
-          (u) => (u.total_claimed ?? 0) > 0 || (u.total_worth ?? 0) > 0
+          (u: { total_claimed: any; total_worth: any }) => (u.total_claimed ?? 0) > 0 || (u.total_worth ?? 0) > 0
         );
 
         const sortedByWorth = [...validData].sort((a, b) => b.total_worth - a.total_worth);
@@ -61,6 +55,7 @@ export default function LeaderboardPage() {
   }
 
   const leaderboard = activeTab === "worth" ? topByWorth : topByClaims
+  console.log("leaderboard", leaderboard)
 
   return (
     <div className="min-h-screen bg-background">

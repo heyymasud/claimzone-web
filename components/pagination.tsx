@@ -75,7 +75,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
                                     ? "bg-linear-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/50 scale-110"
                                     : page === "..."
                                         ? "cursor-default text-foreground/40"
-                                        : "bg-secondary/50 hover:bg-secondary text-foreground hover:text-primary hover:scale-105 hover:shadow-md hover:shadow-primary/20"
+                                        : "bg-secondary/50 hover:bg-secondary text-foreground hover:text-foreground hover:scale-105 hover:shadow-md hover:shadow-primary/20"
                                 }
               `}
                         >
