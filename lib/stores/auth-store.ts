@@ -139,40 +139,42 @@ export const useAuthStore = create<AuthStore>((set, get) => {
       const { user } = get();
       if (!user) return;
 
-      const { data, error } = await supabase
-        .from('user_stats')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching stats:', error);
-        return;
-      }
-
-      if (!data) {
-        const defaultStats: UserStats = {
-          username: user.username || 'User',
-          total_claimed: 0,
-          total_worth: 0,
-          claimed_giveaways: [],
-        };
-
-        const { data: inserted, error: insertError } = await supabase
+      setTimeout(async () => {
+        const { data, error } = await supabase
           .from('user_stats')
-          .insert([{ user_id: user.id, ...defaultStats }])
-          .select()
-          .single();
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
 
-        if (insertError) {
-          console.error('Error creating default stats:', insertError);
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error fetching stats:', error);
           return;
         }
 
-        set({ userStats: inserted });
-      } else {
-        set({ userStats: data });
-      }
+        if (!data) {
+          const defaultStats: UserStats = {
+            username: user.username || 'User',
+            total_claimed: 0,
+            total_worth: 0,
+            claimed_giveaways: [],
+          };
+
+          const { data: inserted, error: insertError } = await supabase
+            .from('user_stats')
+            .insert([{ user_id: user.id, ...defaultStats }])
+            .select()
+            .single();
+
+          if (insertError) {
+            console.error('Error creating default stats:', insertError);
+            return;
+          }
+
+          set({ userStats: inserted });
+        } else {
+          set({ userStats: data });
+        }
+      })
     },
 
     /** ADD CLAIM */
@@ -213,21 +215,23 @@ export const useAuthStore = create<AuthStore>((set, get) => {
       const { user } = get();
       if (!user) return;
 
-      const { data, error } = await supabase
-        .from('user_favorites')
-        .select('giveaway_id')
-        .eq('user_id', user.id);
+      setTimeout(async () => {
+        const { data, error } = await supabase
+          .from('user_favorites')
+          .select('giveaway_id')
+          .eq('user_id', user.id);
 
-      if (error) {
-        console.error('Error loading favorites:', error);
-        set({ initialized: true });
-        return;
-      }
+        if (error) {
+          console.error('Error loading favorites:', error);
+          set({ initialized: true });
+          return;
+        }
 
-      set({
-        userFavorites: data?.map((f) => f.giveaway_id) || [],
-        initialized: true,
-      });
+        set({
+          userFavorites: data?.map((f) => f.giveaway_id) || [],
+          initialized: true,
+        });
+      })
     },
 
     /** ADD FAVORITE */

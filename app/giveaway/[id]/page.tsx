@@ -56,12 +56,32 @@ export default function GiveawayDetail() {
       return
     }
 
-    if (isFavorited) {
-      await removeFavorite(Number(id))
-      setIsFavorited(false)
-    } else {
-      await addFavorite(Number(id))
-      setIsFavorited(true)
+    try {
+      if (isFavorited) {
+        await removeFavorite(Number(id))
+        setIsFavorited(false)
+        toast({
+          title: "Removed from favorites",
+          duration: 3000,
+        })
+      } else {
+        await addFavorite(Number(id))
+        setIsFavorited(true)
+        toast({
+          title: "Added to favorites",
+          duration: 3000,
+        })
+      }
+    } catch (error) {
+      console.error('Toggle favorite error:', error);
+      // Revert UI state on error
+      setIsFavorited(!isFavorited);
+      toast({
+        title: "Error",
+        description: "Failed to update favorites. Please try again.",
+        variant: "destructive",
+        duration: 5000,
+      })
     }
   }
 
@@ -72,17 +92,28 @@ export default function GiveawayDetail() {
     }
 
     if (giveaway) {
-      const worthValue = Number.parseFloat(giveaway.worth?.replace(/[^0-9.-]+/g, "") || "0")
-      await addClaim(Number(id), worthValue)
-      setIsClaimed(true)
+      try {
+        const worthValue = Number.parseFloat(giveaway.worth?.replace(/[^0-9.-]+/g, "") || "0")
+        await addClaim(Number(id), worthValue)
+        setIsClaimed(true)
 
-      toast({
-        title: "Loot Claimed!",
-        description: "Your claim has been recorded. Good luck!",
-        duration: 5000,
-      })
+        toast({
+          title: "Loot Claimed!",
+          description: "Your claim has been recorded. Good luck!",
+          duration: 5000,
+        })
 
-      openLink(giveaway.open_giveaway_url, true)
+        // Open in new tab
+        openLink(giveaway.open_giveaway_url, true)
+      } catch (error) {
+        console.error('Claim error:', error);
+        toast({
+          title: "Error",
+          description: "Failed to claim loot. Please try again.",
+          variant: "destructive",
+          duration: 5000,
+        })
+      }
     }
   }
 
