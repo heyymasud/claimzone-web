@@ -76,7 +76,7 @@ export default function GiveawayCard({ giveaway }: { giveaway: Giveaway }) {
             />
             <button
               onClick={toggleFavorite}
-              disabled={favoriteLoading === giveaway.id} // Disable button while loading
+              disabled={favoriteLoading === giveaway.id}
               className="absolute top-3 right-3 p-2 bg-background/80 backdrop-blur rounded-full hover:bg-background transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title={user ? (isFavorited ? "Remove from favorites" : "Add to favorites") : "Sign in to favorite"}
             >

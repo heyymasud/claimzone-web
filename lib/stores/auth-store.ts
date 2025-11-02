@@ -22,6 +22,7 @@ interface AuthStore {
   // User stats
   fetchUserStats: () => Promise<void>;
   addClaim: (giveawayId: number, worth: number) => Promise<void>;
+  isClaimed: (giveawayId: number) => boolean;
 
   // Favorites
   loadFavorites: () => Promise<void>;
@@ -299,6 +300,12 @@ export const useAuthStore = create<AuthStore>((set, get) => {
     isFavorite: (giveawayId) => {
       const { userFavorites } = get();
       return userFavorites.includes(giveawayId);
+    },
+
+    /** CHECK IF CLAIMED */
+    isClaimed: (giveawayId) => {
+      const { userStats } = get();
+      return userStats?.claimed_giveaways?.includes(giveawayId) || false;
     },
   };
 });

@@ -15,6 +15,7 @@ export const useAuth = () => {
   const resendConfirmationEmail = useStore(useAuthStore, (state) => state.resendConfirmationEmail);
   const fetchUserStats = useStore(useAuthStore, (state) => state.fetchUserStats);
   const addClaim = useStore(useAuthStore, (state) => state.addClaim);
+  const isClaimed = useStore(useAuthStore, (state) => state.isClaimed);
   const loadFavorites = useStore(useAuthStore, (state) => state.loadFavorites);
   const addFavorite = useStore(useAuthStore, (state) => state.addFavorite);
   const removeFavorite = useStore(useAuthStore, (state) => state.removeFavorite);
@@ -33,6 +34,7 @@ export const useAuth = () => {
     resendConfirmationEmail,
     fetchUserStats,
     addClaim,
+    isClaimed,
     loadFavorites,
     addFavorite,
     removeFavorite,

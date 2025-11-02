@@ -10,6 +10,9 @@ type Worth = {
 type GiveawayState = {
     giveaways: Giveaway[]
     filteredGiveaways: Giveaway[]
+    singleGiveaway: Giveaway | null
+    singleGiveawayLoading: boolean
+    singleGiveawayError: string | null
     totalWorth: Worth | null
     loading: boolean
     error: string | null
@@ -28,6 +31,7 @@ type GiveawayState = {
 
     fetchGiveaways: (force?: boolean) => Promise<void>
     refreshGiveaways: () => Promise<void>
+    fetchSingleGiveaway: (id: string) => Promise<Giveaway | null>
 
     setSelectedPlatform: (platform: string) => void
     setSelectedType: (type: string) => void
@@ -41,6 +45,9 @@ export const useGiveawayStore = create<GiveawayState>()(
         (set, get) => ({
             giveaways: [],
             filteredGiveaways: [],
+            singleGiveaway: null,
+            singleGiveawayLoading: false,
+            singleGiveawayError: null,
             totalWorth: null,
             loading: false,
             error: null,
@@ -93,6 +100,35 @@ export const useGiveawayStore = create<GiveawayState>()(
             refreshGiveaways: async () => {
                 await get().fetchGiveaways(true)
             },
+
+            // Function to fetch a single giveaway by ID
+            fetchSingleGiveaway: async (id: string) => {
+                const { singleGiveaway } = get();
+                if (singleGiveaway && singleGiveaway.id === Number(id)) {
+                    // Return cached data if it's the same giveaway
+                    return singleGiveaway;
+                }
+
+                try {
+                    set({ singleGiveawayLoading: true, singleGiveawayError: null });
+                    const res = await fetch(`/api/giveaway/${id}`);
+                    
+                    if (!res.ok) {
+                        throw new Error(`Failed to fetch giveaway: ${res.status}`);
+                    }
+
+                    const giveaway = await res.json();
+                    
+                    set({ singleGiveaway: giveaway, singleGiveawayLoading: false });
+                    return giveaway;
+                } catch (error: any) {
+                    const errorMessage = error.message || "Error fetching giveaway";
+                    set({ singleGiveawayError: errorMessage, singleGiveawayLoading: false });
+                    console.error("Error fetching single giveaway:", error);
+                    return null;
+                }
+            },
+
             applyFilters: () => {
                 const { giveaways, selectedPlatform, selectedType, sortBy, currentPage, itemsPerPage } =
                     get()
