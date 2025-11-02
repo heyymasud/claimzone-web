@@ -8,11 +8,14 @@ export const useAuth = () => {
   const userFavorites = useStore(useAuthStore, (state) => state.userFavorites);
   const loading = useStore(useAuthStore, (state) => state.loading);
   const initialized = useStore(useAuthStore, (state) => state.initialized);
+  const favoriteLoading = useStore(useAuthStore, (state) => state.favoriteLoading);
   const login = useStore(useAuthStore, (state) => state.login);
   const register = useStore(useAuthStore, (state) => state.register);
   const logout = useStore(useAuthStore, (state) => state.logout);
+  const resendConfirmationEmail = useStore(useAuthStore, (state) => state.resendConfirmationEmail);
   const fetchUserStats = useStore(useAuthStore, (state) => state.fetchUserStats);
   const addClaim = useStore(useAuthStore, (state) => state.addClaim);
+  const isClaimed = useStore(useAuthStore, (state) => state.isClaimed);
   const loadFavorites = useStore(useAuthStore, (state) => state.loadFavorites);
   const addFavorite = useStore(useAuthStore, (state) => state.addFavorite);
   const removeFavorite = useStore(useAuthStore, (state) => state.removeFavorite);
@@ -24,11 +27,14 @@ export const useAuth = () => {
     userFavorites,
     loading,
     initialized,
+    favoriteLoading,
     login,
     register,
     logout,
+    resendConfirmationEmail,
     fetchUserStats,
     addClaim,
+    isClaimed,
     loadFavorites,
     addFavorite,
     removeFavorite,

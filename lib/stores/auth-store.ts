@@ -11,15 +11,18 @@ interface AuthStore {
   userFavorites: number[];
   loading: boolean;
   initialized: boolean;
+  favoriteLoading: number | null;
 
   // Auth actions
   login: (email: string, password: string) => Promise<void>;
   register: (username: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  resendConfirmationEmail: (email: string) => Promise<void>;
 
   // User stats
   fetchUserStats: () => Promise<void>;
   addClaim: (giveawayId: number, worth: number) => Promise<void>;
+  isClaimed: (giveawayId: number) => boolean;
 
   // Favorites
   loadFavorites: () => Promise<void>;
@@ -36,46 +39,49 @@ export const useAuthStore = create<AuthStore>((set, get) => {
     const session = sessionData?.session;
 
     if (session?.user) {
-      set({
-        user: {
-          id: session.user.id,
-          username:
-            session.user.user_metadata?.username ||
-            session.user.email?.split('@')[0] ||
-            'User',
-          email: session.user.email || '',
-          createdAt: new Date(session.user.created_at || Date.now()).getTime(),
-        },
-      });
-      await get().fetchUserStats();
-      await get().loadFavorites();
+      const user = {
+        id: session.user.id,
+        username:
+          session.user.user_metadata?.username ||
+          session.user.email?.split('@')[0] ||
+          'User',
+        email: session.user.email || '',
+        createdAt: new Date(session.user.created_at || Date.now()).getTime(),
+      };
+
+      set({ user });
+      await Promise.all([get().fetchUserStats(), get().loadFavorites()]);
     }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (session?.user && event === 'SIGNED_IN') {
-          set({
-            user: {
-              id: session.user.id,
-              username:
-                session.user.user_metadata?.username ||
-                session.user.email?.split('@')[0] ||
-                'User',
-              email: session.user.email || '',
-              createdAt: new Date(session.user.created_at || Date.now()).getTime(),
-            },
-            loading: true,
-          });
-          await get().fetchUserStats();
-          await get().loadFavorites();
+          const user = {
+            id: session.user.id,
+            username:
+              session.user.user_metadata?.username ||
+              session.user.email?.split('@')[0] ||
+              'User',
+            email: session.user.email || '',
+            createdAt: new Date(session.user.created_at || Date.now()).getTime(),
+          }
+
+          set({ user, loading: true });
+          await Promise.all([get().fetchUserStats(), get().loadFavorites()]);
           set({ loading: false });
         } else if (event === 'SIGNED_OUT') {
-          set({ user: null, userStats: null, userFavorites: [] });
+          set({
+            user: null,
+            userStats: null,
+            userFavorites: [],
+            favoriteLoading: null,
+          });
         }
       }
-    );
+    )
 
     authSubscription = subscription;
+    set({ initialized: true });
   };
 
   if (typeof window !== 'undefined') {
@@ -91,6 +97,7 @@ export const useAuthStore = create<AuthStore>((set, get) => {
     userFavorites: [],
     loading: true,
     initialized: false,
+    favoriteLoading: null,
 
     /** LOGIN */
     login: async (email, password) => {
@@ -100,14 +107,13 @@ export const useAuthStore = create<AuthStore>((set, get) => {
 
     /** REGISTER */
     register: async (username, email, password) => {
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { username },
+          data: { username }
         },
-      });
-
+      })
       if (error) throw new Error(error.message);
     },
 
@@ -115,48 +121,61 @@ export const useAuthStore = create<AuthStore>((set, get) => {
     logout: async () => {
       const { error } = await supabase.auth.signOut();
       if (error) console.error('Logout error:', error);
-      set({ user: null, userStats: null, userFavorites: [] });
+      set({ user: null, userStats: null, userFavorites: [], favoriteLoading: null })
     },
 
-    /** GET OR CREATE USER STATS */
+    /** RESEND CONFIRMATION EMAIL */
+    resendConfirmationEmail: async (email) => {
+      const supabase = createClient()
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+        options: { emailRedirectTo: window.location.origin },
+      })
+      if (error) throw new Error(error.message)
+    },
+
+    /** FETCH / CREATE USER STATS */
     fetchUserStats: async () => {
       const { user } = get();
       if (!user) return;
 
-      const { data, error } = await supabase
-        .from('user_stats')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching stats:', error);
-        return;
-      }
-
-      if (!data) {
-        const defaultStats: UserStats = {
-          username: user.username || 'User',
-          total_claimed: 0,
-          total_worth: 0,
-          claimed_giveaways: [],
-        };
-
-        const { data: inserted, error: insertError } = await supabase
+      setTimeout(async () => {
+        const { data, error } = await supabase
           .from('user_stats')
-          .insert([{ user_id: user.id, ...defaultStats }])
-          .select()
-          .single();
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
 
-        if (insertError) {
-          console.error('Error creating default stats:', insertError);
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error fetching stats:', error);
           return;
         }
 
-        set({ userStats: inserted });
-      } else {
-        set({ userStats: data });
-      }
+        if (!data) {
+          const defaultStats: UserStats = {
+            username: user.username || 'User',
+            total_claimed: 0,
+            total_worth: 0,
+            claimed_giveaways: [],
+          };
+
+          const { data: inserted, error: insertError } = await supabase
+            .from('user_stats')
+            .insert([{ user_id: user.id, ...defaultStats }])
+            .select()
+            .single();
+
+          if (insertError) {
+            console.error('Error creating default stats:', insertError);
+            return;
+          }
+
+          set({ userStats: inserted });
+        } else {
+          set({ userStats: data });
+        }
+      })
     },
 
     /** ADD CLAIM */
@@ -192,71 +211,101 @@ export const useAuthStore = create<AuthStore>((set, get) => {
       set({ userStats: data });
     },
 
-    /** GET FAVORITES */
+    /** LOAD FAVORITES */
     loadFavorites: async () => {
       const { user } = get();
       if (!user) return;
 
-      const { data, error } = await supabase
-        .from('user_favorites')
-        .select('giveaway_id')
-        .eq('user_id', user.id);
+      setTimeout(async () => {
+        const { data, error } = await supabase
+          .from('user_favorites')
+          .select('giveaway_id')
+          .eq('user_id', user.id);
 
-      if (error) {
-        console.error('Error loading favorites:', error);
-        return;
-      }
+        if (error) {
+          console.error('Error loading favorites:', error);
+          set({ initialized: true });
+          return;
+        }
 
-      set({
-        userFavorites: data?.map((f) => f.giveaway_id) || [],
-        initialized: true,
-      });
+        set({
+          userFavorites: data?.map((f) => f.giveaway_id) || [],
+          initialized: true,
+        });
+      })
     },
 
     /** ADD FAVORITE */
     addFavorite: async (giveawayId) => {
-      const { user } = get();
+      const { user, userFavorites } = get();
       if (!user) return;
 
-      const { error } = await supabase
-        .from('user_favorites')
-        .insert([{ user_id: user.id, giveaway_id: giveawayId }]);
+      set({
+        userFavorites: Array.from(new Set([...userFavorites, giveawayId])),
+        favoriteLoading: giveawayId,
+      });
 
-      if (error) {
-        console.error('Error adding favorite:', error);
-        return;
+      try {
+        const { error } = await supabase
+          .from('user_favorites')
+          .insert([{ user_id: user.id, giveaway_id: giveawayId }]);
+
+        if (error) {
+          set({
+            userFavorites: userFavorites.filter((id) => id !== giveawayId),
+            favoriteLoading: null,
+          });
+          throw new Error(error.message);
+        }
+      } catch (err) {
+        console.error('Error in addFavorite:', err);
+      } finally {
+        set({ favoriteLoading: null });
       }
-
-      set((state) => ({
-        userFavorites: Array.from(new Set([...state.userFavorites, giveawayId])),
-      }));
     },
 
-    /** DELETE FAVORITE */
+    /** REMOVE FAVORITE */
     removeFavorite: async (giveawayId) => {
-      const { user } = get();
+
+      const { user, userFavorites } = get();
       if (!user) return;
 
-      const { error } = await supabase
-        .from('user_favorites')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('giveaway_id', giveawayId);
+      set({
+        userFavorites: userFavorites.filter((id) => id !== giveawayId),
+        favoriteLoading: giveawayId,
+      });
 
-      if (error) {
-        console.error('Error removing favorite:', error);
-        return;
+      try {
+        const { error } = await supabase
+          .from('user_favorites')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('giveaway_id', giveawayId);
+
+        if (error) {
+          set({
+            userFavorites: Array.from(new Set([...userFavorites, giveawayId])),
+            favoriteLoading: null,
+          });
+          throw new Error(error.message);
+        }
+      } catch (err) {
+        console.error('Error in removeFavorite:', err);
+      } finally {
+        set({ favoriteLoading: null });
       }
-
-      set((state) => ({
-        userFavorites: state.userFavorites.filter((id) => id !== giveawayId),
-      }));
     },
 
     /** CHECK IF FAVORITE */
     isFavorite: (giveawayId) => {
       const { userFavorites } = get();
       return userFavorites.includes(giveawayId);
+    },
+
+    /** CHECK IF CLAIMED */
+    isClaimed: (giveawayId) => {
+      const { userStats } = get();
+      return userStats?.claimed_giveaways?.includes(giveawayId) || false;
     },
   };
 });

@@ -6,12 +6,14 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/hooks/use-auth"
 
 export default function ConfirmEmailClient({
     searchParams,
 }: {
     searchParams: Promise<{ email?: string }>
 }) {
+    const { resendConfirmationEmail } = useAuth()
     const router = useRouter()
     const params = use(searchParams)
     const email = params.email || ""
@@ -28,9 +30,10 @@ export default function ConfirmEmailClient({
         }
     }, [resendCooldown])
 
-    const handleResendEmail = () => {
+    const handleResendEmail = async () => {
         setCanResend(false)
         setResendCooldown(60)
+        await resendConfirmationEmail(email)
         toast({
             title: "Email Resent!",
             description: `Confirmation email has been sent to ${email}. Check your inbox and spam folder.`,

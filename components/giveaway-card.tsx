@@ -5,26 +5,15 @@ import type React from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Heart } from "lucide-react"
-import { useState, useEffect } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { Giveaway } from "@/types/giveaway"
 import { useRouter } from "next/navigation"
 
 export default function GiveawayCard({ giveaway }: { giveaway: Giveaway }) {
-  const [isFavorited, setIsFavorited] = useState(false)
-  const { user, isFavorite, addFavorite, removeFavorite } = useAuth()
+  const { user, isFavorite, addFavorite, removeFavorite, favoriteLoading } = useAuth()
   const router = useRouter()
 
-  useEffect(() => {
-    const checkFavorite = async () => {
-      if (user) {
-        const result = isFavorite(giveaway.id)
-        setIsFavorited(result)
-      }
-    }
-    
-    checkFavorite()
-  }, [giveaway.id, user, isFavorite])
+  const isFavorited = isFavorite(giveaway.id)
 
   const toggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault()
@@ -35,10 +24,8 @@ export default function GiveawayCard({ giveaway }: { giveaway: Giveaway }) {
 
     if (isFavorited) {
       await removeFavorite(giveaway.id)
-      setIsFavorited(false)
     } else {
       await addFavorite(giveaway.id)
-      setIsFavorited(true)
     }
   }
 
@@ -72,8 +59,6 @@ export default function GiveawayCard({ giveaway }: { giveaway: Giveaway }) {
     return platformColors[platform.toLowerCase()] || "bg-muted"
   }
 
-  const platformKey = giveaway.platforms?.toLowerCase().split(",")[0].trim() || "steam"
-  const platformColor = platformColors[platformKey] || "bg-muted"
   const typeColor = typeColors[giveaway.type?.toLowerCase()] || "bg-muted"
 
   return (
@@ -91,10 +76,13 @@ export default function GiveawayCard({ giveaway }: { giveaway: Giveaway }) {
             />
             <button
               onClick={toggleFavorite}
-              className="absolute top-3 right-3 p-2 bg-background/80 backdrop-blur rounded-full hover:bg-background transition-colors"
+              disabled={favoriteLoading === giveaway.id}
+              className="absolute top-3 right-3 p-2 bg-background/80 backdrop-blur rounded-full hover:bg-background transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title={user ? (isFavorited ? "Remove from favorites" : "Add to favorites") : "Sign in to favorite"}
             >
-              <Heart className={`w-5 h-5 ${isFavorited ? "fill-destructive text-destructive" : "text-foreground"}`} />
+              <Heart
+                className={`w-5 h-5 ${favoriteLoading === giveaway.id ? "animate-pulse" : ""} ${isFavorited ? "fill-destructive text-destructive" : "text-foreground"}`}
+              />
             </button>
           </div>
 
@@ -122,7 +110,7 @@ export default function GiveawayCard({ giveaway }: { giveaway: Giveaway }) {
                 <p className="text-xs text-muted-foreground">Worth</p>
                 <p className="font-bold text-accent">{giveaway.worth || "Free"}</p>
               </div>
-              <div className={`text-right ${giveaway.end_date != "N/A"  ? "" : "invisible"}`}>
+              <div className={`text-right ${giveaway.end_date != "N/A" ? "" : "invisible"}`}>
                 <p className="text-xs text-muted-foreground">Ends</p>
                 <p className="text-xs font-semibold text-foreground">
                   {new Date(giveaway.end_date).toLocaleDateString()}

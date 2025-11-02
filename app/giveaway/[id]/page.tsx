@@ -1,65 +1,64 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft, Heart, Share2, Copy, ExternalLink, Check } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
+import { useGiveawayStore } from "@/lib/stores/giveaway-store"
 import { Giveaway } from "@/types/giveaway"
 import { useToast } from "@/hooks/use-toast"
+import { useOpenLink } from "@/hooks/use-openlink"
+import { ShareMenu } from "@/components/share-menu"
 
 export default function GiveawayDetail() {
   const params = useParams()
   const id = params.id as string
-  const [giveaway, setGiveaway] = useState<Giveaway | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [isFavorited, setIsFavorited] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [isClaimed, setIsClaimed] = useState(false)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
-  const { user, userStats, isFavorite, addFavorite, removeFavorite, addClaim } = useAuth()
-  const router = useRouter()
+  const { user, isFavorite, isClaimed, addFavorite, removeFavorite, addClaim, favoriteLoading } = useAuth()
+  const { singleGiveaway, singleGiveawayLoading, singleGiveawayError, fetchSingleGiveaway } = useGiveawayStore()
+  const { openLink } = useOpenLink()
   const { toast } = useToast()
 
   useEffect(() => {
-    const fetchGiveaway = async () => {
-      try {
-        const res = await fetch(`/api/giveaway/${id}`)
-        const data = await res.json()
-        setGiveaway(data)
-
-        if (user) {
-          const isFavoritedResult = isFavorite(Number(id))
-          setIsFavorited(isFavoritedResult)
-
-          // Check if already claimed - this needs to be updated to use Supabase
-          if (userStats) {
-            setIsClaimed(userStats.claimed_giveaways?.includes(Number(id)) || false)
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching giveaway:", error)
-      } finally {
-        setLoading(false)
-      }
+    const loadGiveaway = async () => {
+      await fetchSingleGiveaway(id)
     }
 
-    fetchGiveaway()
-  }, [id, user, isFavorite, userStats])
+    loadGiveaway()
+  }, [id, fetchSingleGiveaway])
 
   const toggleFavorite = async () => {
     if (!user) {
-      router.push("/login")
+      openLink("/login")
       return
     }
 
-    if (isFavorited) {
-      await removeFavorite(Number(id))
-      setIsFavorited(false)
-    } else {
-      await addFavorite(Number(id))
-      setIsFavorited(true)
+    try {
+      const isCurrentlyFavorited = isFavorite(Number(id))
+      if (isCurrentlyFavorited) {
+        await removeFavorite(Number(id))
+        toast({
+          title: "Removed from favorites",
+          duration: 3000,
+        })
+      } else {
+        await addFavorite(Number(id))
+        toast({
+          title: "Added to favorites",
+          duration: 3000,
+        })
+      }
+    } catch (error) {
+      console.error('Toggle favorite error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update favorites. Please try again.",
+        variant: "destructive",
+        duration: 5000,
+      })
     }
   }
 
@@ -69,24 +68,34 @@ export default function GiveawayDetail() {
       return
     }
 
-    if (giveaway) {
-      const worthValue = Number.parseFloat(giveaway.worth?.replace(/[^0-9.-]+/g, "") || "0")
-      await addClaim(Number(id), worthValue)
-      setIsClaimed(true)
+    if (singleGiveaway) {
+      try {
+        const worthValue = Number.parseFloat(singleGiveaway.worth?.replace(/[^0-9.-]+/g, "") || "0")
+        await addClaim(Number(id), worthValue)
 
-      // Open the giveaway link
-      window.open(giveaway.open_giveaway_url, "_blank")
+        toast({
+          title: "Loot Claimed!",
+          description: "Your claim has been recorded. Good luck!",
+          duration: 5000,
+        })
 
-      toast({
-        title: "Loot Claimed!",
-        description: "Your claim has been recorded. Good luck!",
-      })
+        // Open in new tab
+        openLink(singleGiveaway.open_giveaway_url, true)
+      } catch (error) {
+        console.error('Claim error:', error);
+        toast({
+          title: "Error",
+          description: "Failed to claim loot. Please try again.",
+          variant: "destructive",
+          duration: 5000,
+        })
+      }
     }
   }
 
   const handleOpenLinkWithoutLogin = () => {
-    if (giveaway) {
-      window.open(giveaway.open_giveaway_url, "_blank")
+    if (singleGiveaway) {
+      openLink(singleGiveaway.open_giveaway_url, true)
     }
     setShowLoginPrompt(false)
   }
@@ -97,13 +106,10 @@ export default function GiveawayDetail() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const shareOnTwitter = () => {
-    const text = `Check out this free ${giveaway?.type}: ${giveaway?.title} on ClaimZone`
-    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.href)}`
-    window.open(url, "_blank")
-  }
+  // Get the current favorite status from the auth store
+  const isFavorited = isFavorite(Number(id))
 
-  if (loading) {
+  if (singleGiveawayLoading) {
     return (
       <div className="min-h-screen bg-background">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -120,11 +126,14 @@ export default function GiveawayDetail() {
     )
   }
 
-  if (!giveaway) {
+  if (singleGiveawayError || !singleGiveaway) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-foreground mb-4">Giveaway not found</h1>
+          <h1 className="text-2xl font-bold text-foreground mb-4">
+            {singleGiveawayError ? "Error loading giveaway" : "Giveaway not found"}
+          </h1>
+          <p className="text-muted-foreground mb-4">{singleGiveawayError}</p>
           <Link href="/" className="text-primary hover:underline">
             Back to home
           </Link>
@@ -132,6 +141,9 @@ export default function GiveawayDetail() {
       </div>
     )
   }
+
+  // Get the current claimed status from the auth store
+  const isCurrentlyClaimed = isClaimed(Number(id))
 
   return (
     <div className="min-h-screen bg-background">
@@ -147,8 +159,8 @@ export default function GiveawayDetail() {
           {/* Image */}
           <div className="relative w-full h-96 bg-muted">
             <Image
-              src={giveaway.image || giveaway.thumbnail || "/placeholder.svg?height=384&width=800&query=game"}
-              alt={giveaway.title}
+              src={singleGiveaway.image || singleGiveaway.thumbnail || "/placeholder.svg?height=384&width=800&query=game"}
+              alt={singleGiveaway.title}
               fill
               className="object-cover"
             />
@@ -159,22 +171,23 @@ export default function GiveawayDetail() {
             {/* Header */}
             <div className="flex justify-between items-start mb-6">
               <div className="flex-1">
-                <h1 className="text-4xl font-bold text-foreground mb-2">{giveaway.title}</h1>
+                <h1 className="text-4xl font-bold text-foreground mb-2">{singleGiveaway.title}</h1>
                 <div className="flex gap-2 flex-wrap">
                   <span className="bg-secondary text-secondary-foreground px-3 py-1 rounded-full text-sm font-semibold">
-                    {giveaway.platforms || "Steam"}
+                    {singleGiveaway.platforms || "Steam"}
                   </span>
                   <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-semibold">
-                    {giveaway.type || "Game"}
+                    {singleGiveaway.type || "Game"}
                   </span>
                 </div>
               </div>
               <button
                 onClick={toggleFavorite}
-                className="p-3 bg-muted hover:bg-muted/80 rounded-full transition-colors"
+                disabled={favoriteLoading === Number(id)} // Disable button while favorite operation is loading
+                className="p-3 bg-muted hover:bg-muted/80 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 title={user ? (isFavorited ? "Remove from favorites" : "Add to favorites") : "Sign in to favorite"}
               >
-                <Heart className={`w-6 h-6 ${isFavorited ? "fill-destructive text-destructive" : "text-foreground"}`} />
+                <Heart className={`w-6 h-6 ${favoriteLoading === Number(id) ? "animate-pulse" : ""} ${isFavorited ? "fill-destructive text-destructive" : "text-foreground"}`} />
               </button>
             </div>
 
@@ -182,39 +195,39 @@ export default function GiveawayDetail() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 pb-8 border-b border-border">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Worth</p>
-                <p className="text-2xl font-bold text-accent">{giveaway.worth || "Free"}</p>
+                <p className="text-2xl font-bold text-accent">{singleGiveaway.worth || "Free"}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Status</p>
-                <p className="text-lg font-semibold text-foreground capitalize">{giveaway.status || "Active"}</p>
+                <p className="text-lg font-semibold text-foreground capitalize">{singleGiveaway.status || "Active"}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground mb-1">End Date</p>
                 <p className="text-lg font-semibold text-foreground">
-                  {new Date(giveaway.end_date).toLocaleDateString()}
+                  {new Date(singleGiveaway.end_date).toLocaleDateString()}
                 </p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Participants</p>
-                <p className="text-lg font-semibold text-foreground">{giveaway.users?.toLocaleString() || "N/A"}</p>
+                <p className="text-lg font-semibold text-foreground">{singleGiveaway.users?.toLocaleString() || "N/A"}</p>
               </div>
             </div>
 
             {/* Description */}
-            {giveaway.description && (
+            {singleGiveaway.description && (
               <div className="mb-8">
                 <h2 className="text-xl font-bold text-foreground mb-3">Description</h2>
-                <p className="text-foreground/80 leading-relaxed">{giveaway.description}</p>
+                <p className="text-foreground/80 leading-relaxed">{singleGiveaway.description}</p>
               </div>
             )}
 
             {/* Instructions */}
-            {giveaway.instructions && (
+            {singleGiveaway.instructions && (
               <div className="mb-8">
                 <h2 className="text-xl font-bold text-foreground mb-3">How to Claim</h2>
                 <div
                   className="text-foreground/80 leading-relaxed prose prose-invert max-w-none"
-                  dangerouslySetInnerHTML={{ __html: giveaway.instructions }}
+                  dangerouslySetInnerHTML={{ __html: singleGiveaway.instructions }}
                 />
               </div>
             )}
@@ -223,13 +236,13 @@ export default function GiveawayDetail() {
             <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={handleClaimLoots}
-                disabled={isClaimed}
-                className={`flex-1 font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-all ${isClaimed
-                    ? "bg-green-600/20 text-green-400 border border-green-600/50"
-                    : "bg-accent text-accent-foreground hover:opacity-90"
+                disabled={isCurrentlyClaimed}
+                className={`flex-1 font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-all ${isCurrentlyClaimed
+                  ? "bg-green-600/20 text-green-400 border border-green-600/50"
+                  : "bg-accent text-accent-foreground hover:opacity-90"
                   }`}
               >
-                {isClaimed ? (
+                {isCurrentlyClaimed ? (
                   <>
                     <Check className="w-5 h-5" />
                     Claimed
@@ -248,13 +261,7 @@ export default function GiveawayDetail() {
                 <Copy className="w-5 h-5" />
                 {copied ? "Copied!" : "Copy Link"}
               </button>
-              <button
-                onClick={shareOnTwitter}
-                className="flex-1 bg-muted text-foreground font-bold py-3 px-6 rounded-lg hover:bg-muted/80 transition-colors flex items-center justify-center gap-2"
-              >
-                <Share2 className="w-5 h-5" />
-                Share
-              </button>
+              <ShareMenu title={singleGiveaway.title} url={window.location.href} />
             </div>
             {showLoginPrompt && !user && (
               <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
