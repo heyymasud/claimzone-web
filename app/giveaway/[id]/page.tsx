@@ -1,13 +1,15 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { ArrowLeft, Heart, Share2, Copy, ExternalLink, Check } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { Giveaway } from "@/types/giveaway"
 import { useToast } from "@/hooks/use-toast"
+import { useOpenLink } from "@/hooks/use-openlink"
+import { ShareMenu } from "@/components/share-menu"
 
 export default function GiveawayDetail() {
   const params = useParams()
@@ -19,7 +21,7 @@ export default function GiveawayDetail() {
   const [isClaimed, setIsClaimed] = useState(false)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const { user, userStats, isFavorite, addFavorite, removeFavorite, addClaim } = useAuth()
-  const router = useRouter()
+  const { openLink } = useOpenLink()
   const { toast } = useToast()
 
   useEffect(() => {
@@ -50,7 +52,7 @@ export default function GiveawayDetail() {
 
   const toggleFavorite = async () => {
     if (!user) {
-      router.push("/login")
+      openLink("/login")
       return
     }
 
@@ -74,19 +76,19 @@ export default function GiveawayDetail() {
       await addClaim(Number(id), worthValue)
       setIsClaimed(true)
 
-      // Open the giveaway link
-      window.open(giveaway.open_giveaway_url, "_blank")
-
       toast({
         title: "Loot Claimed!",
         description: "Your claim has been recorded. Good luck!",
+        duration: 5000,
       })
+
+      openLink(giveaway.open_giveaway_url, true)
     }
   }
 
   const handleOpenLinkWithoutLogin = () => {
     if (giveaway) {
-      window.open(giveaway.open_giveaway_url, "_blank")
+      openLink(giveaway.open_giveaway_url, true)
     }
     setShowLoginPrompt(false)
   }
@@ -95,12 +97,6 @@ export default function GiveawayDetail() {
     navigator.clipboard.writeText(window.location.href)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
-  }
-
-  const shareOnTwitter = () => {
-    const text = `Check out this free ${giveaway?.type}: ${giveaway?.title} on ClaimZone`
-    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(window.location.href)}`
-    window.open(url, "_blank")
   }
 
   if (loading) {
@@ -225,8 +221,8 @@ export default function GiveawayDetail() {
                 onClick={handleClaimLoots}
                 disabled={isClaimed}
                 className={`flex-1 font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-all ${isClaimed
-                    ? "bg-green-600/20 text-green-400 border border-green-600/50"
-                    : "bg-accent text-accent-foreground hover:opacity-90"
+                  ? "bg-green-600/20 text-green-400 border border-green-600/50"
+                  : "bg-accent text-accent-foreground hover:opacity-90"
                   }`}
               >
                 {isClaimed ? (
@@ -248,13 +244,7 @@ export default function GiveawayDetail() {
                 <Copy className="w-5 h-5" />
                 {copied ? "Copied!" : "Copy Link"}
               </button>
-              <button
-                onClick={shareOnTwitter}
-                className="flex-1 bg-muted text-foreground font-bold py-3 px-6 rounded-lg hover:bg-muted/80 transition-colors flex items-center justify-center gap-2"
-              >
-                <Share2 className="w-5 h-5" />
-                Share
-              </button>
+              <ShareMenu title={giveaway.title} url={window.location.href} />
             </div>
             {showLoginPrompt && !user && (
               <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
