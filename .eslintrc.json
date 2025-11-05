@@ -1,13 +1,10 @@
 {
   "extends": [
-    "@eslint/js",
     "next/core-web-vitals",
     "next/typescript",
     "prettier"
   ],
-  "plugins": [
-    "prettier"
-  ],
+  "plugins": ["prettier"],
   "rules": {
     "no-console": "warn",
     "prefer-const": "error",
