@@ -9,8 +9,11 @@ export async function GET() {
         .limit(100)
 
     if (error) {
-        console.error(error)
-        return NextResponse.json({ error: error.message }, { status: 500 })
+        console.error("Error fetching user stats:", error)
+        return NextResponse.json(
+            { error: "Failed to retrieve user stats" },
+            { status: 500 }
+        )
     }
 
     return NextResponse.json(data)
