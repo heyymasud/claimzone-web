@@ -1,10 +1,11 @@
-"use client"
+"use client";
 
-import ConfirmEmailClient from "./confirm-email-client"
+import ConfirmEmailClient from "./confirm-email-client";
 
-export default function ConfirmEmailPage({ searchParams }: { searchParams: Promise<{ email?: string }> }) {
-
-    return (
-        <ConfirmEmailClient searchParams={searchParams} />
-    )
+export default function ConfirmEmailPage({
+	searchParams,
+}: {
+	searchParams: Promise<{ email?: string }>;
+}) {
+	return <ConfirmEmailClient searchParams={searchParams} />;
 }
